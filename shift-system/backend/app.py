@@ -320,40 +320,37 @@ def init_db():
             )
             admin.set_password('admin')
             
+            # Create sample employees
+
             emp1 = Employee(
-                employee_id='1',
-                name='John Smith',
-                role='employee',
-                is_priority=True
-            )
-            emp1.set_password('1')
-            
-            emp2 = Employee(
-                employee_id='2',
-                name='Jane Doe',
+                employee_id='t997',
+                name='Mr. Talal Al Harby',
                 role='employee',
                 is_priority=False
             )
-            emp2.set_password('2')
+            emp1.set_password('t997')
+
+            emp2 = Employee(
+                employee_id='w997',
+                name='Wafa Almagrbi',
+                role='employee',
+                is_priority=False
+            )
+            emp2.set_password('w997')
 
             emp3 = Employee(
-                employee_id='3',
-                name='Jane Doe',
+                employee_id='m997',
+                name='Mansour Alzahrani',
                 role='employee',
                 is_priority=False
             )
-            emp3.set_password('3')
+            emp3.set_password('m997')
 
-            emp4 = Employee(
-                employee_id='4',
-                name='4 4',
-                role='employee',
-                is_priority=False
-            )
-            emp4.set_password('4')
+            # Add the new employees to the session (excluding emp4)
             
-            db.session.add_all([admin, emp1, emp2, emp3,emp4])
-            
+            db.session.add_all([admin, emp1, emp2, emp3])
+            db.session.commit()
+
             # Create sample shift capacities for the next month
             next_month = datetime.now().replace(day=1) + timedelta(days=32)
             next_month = next_month.replace(day=1)
