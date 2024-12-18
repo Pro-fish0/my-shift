@@ -306,7 +306,7 @@ def get_employee_shifts(employee_id):
 def init_db():
     with app.app_context():
         # Drop and recreate all tables
-        #db.drop_all()
+        db.drop_all()
         db.create_all()
         
         # Add sample data if database is empty
@@ -349,7 +349,7 @@ def init_db():
             # Add the new employees to the session (excluding emp4)
             
             db.session.add_all([admin, emp1, emp2, emp3])
-            db.session.commit()
+            
 
             # Create sample shift capacities for the next month
             next_month = datetime.now().replace(day=1) + timedelta(days=32)
