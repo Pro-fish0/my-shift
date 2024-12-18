@@ -27,14 +27,14 @@ const Login = ({ onLogin }) => {
     <div className="min-h-screen bg-gray-50">
       <header className="srca-header">
         <div className="srca-container flex items-center">
-          <img src="https://my.srca.org.sa/logo.png" alt="SRCA Logo" className="srca-logo" />
+          <img src="/images/logo.png" alt="SRCA Logo" className="srca-logo" />
         </div>
       </header>
       
       <div className="srca-container flex items-center justify-center mt-16">
         <div className="srca-card w-full max-w-md">
           <div className="text-center mb-8">
-            <img src="https://my.srca.org.sa/logo.png" alt="SRCA Logo" className="h-16 mx-auto mb-4" />
+            <img src="/images/logo.png" alt="SRCA Logo" className="h-16 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900">
               Shift Management System
             </h2>
