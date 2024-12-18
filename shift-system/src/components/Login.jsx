@@ -24,16 +24,24 @@ const Login = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Shift Management System
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Please sign in with your employee ID
-          </p>
+    <div className="min-h-screen bg-gray-50">
+      <header className="srca-header">
+        <div className="srca-container flex items-center">
+          <img src="https://my.srca.org.sa/logo.png" alt="SRCA Logo" className="srca-logo" />
         </div>
+      </header>
+      
+      <div className="srca-container flex items-center justify-center mt-16">
+        <div className="srca-card w-full max-w-md">
+          <div className="text-center mb-8">
+            <img src="https://my.srca.org.sa/logo.png" alt="SRCA Logo" className="h-16 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900">
+              Shift Management System
+            </h2>
+            <p className="mt-2 text-gray-600">
+              Please sign in with your employee ID
+            </p>
+          </div>
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
@@ -93,6 +101,7 @@ const Login = ({ onLogin }) => {
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

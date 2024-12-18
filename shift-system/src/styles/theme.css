@@ -1,0 +1,29 @@
+:root {
+    --primary-red: #BD1B21;
+    --secondary-gray: #4B5563;
+  }
+  
+  .srca-header {
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  .srca-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  
+  .srca-logo {
+    height: 50px;
+    width: auto;
+  }
+  
+  .srca-card {
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 2rem;
+  }

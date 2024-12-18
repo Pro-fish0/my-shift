@@ -241,35 +241,31 @@ const ShiftSelector = ({ employeeId }) => {
                       );
                     } else {
                       // Selection mode - Updated
+                      // Selection mode - Updated
                       return (
                         <div
                           key={`${day}-${shift.name}`}
                           onClick={() => isAvailable ? handleShiftClick(day, shift.name) : null}
                           className={`
                             flex-1 relative cursor-pointer transition-colors
-                            ${shift.color}  // Always show the background color
+                            ${shift.color}
                             ${isSelected ? 'ring-2 ring-blue-400 ring-inset' : ''}
                             ${!isAvailable ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-95'}
                             flex items-center justify-center
                           `}
                         >
-                          {isSelected && (
-                            <span className="text-sm font-medium text-gray-800">
-                              {shift.name}
-                            </span>
-                          )}
-                        <>
                           <span className="text-sm font-medium text-gray-800">
                             {shift.name}
                           </span>
-                          <div 
-                            className={`
-                              absolute right-2 top-1/2 -translate-y-1/2
-                              w-3 h-3 rounded-full
-                              ${isAvailable ? 'bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.5)]' : 'bg-red-400'}
-                            `}
-                          />
-                        </>
+                          {!isSelected && (
+                            <div 
+                              className={`
+                                absolute right-2 top-1/2 -translate-y-1/2
+                                w-3 h-3 rounded-full
+                                ${isAvailable ? 'bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.5)]' : 'bg-red-400'}
+                              `}
+                            />
+                          )}
                         </div>
                       );
                     }
