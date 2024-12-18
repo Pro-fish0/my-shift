@@ -41,11 +41,7 @@ function App() {
           <div className="flex justify-between h-16 items-center">
             {/* Logo */}
             <div className="flex items-center">
-              <img
-                src="https://my.srca.org.sa/logo.png"
-                alt="SRCA Logo"
-                className="h-8 w-auto"
-              />
+            <img src="/images/logo.png" alt="SRCA Logo" className="srca-logo" />
             </div>
             {/* User Info and Logout */}
             <div className="flex items-center gap-4">
