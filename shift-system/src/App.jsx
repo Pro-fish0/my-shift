@@ -1,5 +1,4 @@
 import React from 'react';
-import { User, LogOut, Building2 } from 'lucide-react';
 import Login from './components/Login';
 import ShiftSelector from './components/ShiftSelector';
 import AdminDashboard from './components/AdminDashboard';
@@ -51,7 +50,6 @@ function App() {
             {/* Centered User Info */}
             <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2
                           flex items-center space-x-3 bg-gray-50 px-4 py-2 rounded-full">
-              <User className="h-5 w-5 text-gray-500" />
               <span className="text-sm font-medium text-gray-700">{user.name}</span>
               <span className="h-4 w-px bg-gray-300"></span>
               <span className="text-sm text-gray-500">{user.role}</span>
@@ -60,23 +58,18 @@ function App() {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="inline-flex items-center px-4 py-2 bg-red-50 text-red-700 
-                       rounded-lg hover:bg-red-100 transition-colors duration-200 
-                       space-x-2 border border-red-200"
+              className="px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 
+                       transition-colors duration-200 border border-red-200 font-medium"
             >
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
+              Logout
             </button>
           </div>
 
           {/* Bottom Header with Current Section */}
           <div className="h-12 border-t flex items-center px-4 bg-gray-50">
-            <div className="flex items-center space-x-2 text-gray-600">
-              <Building2 className="h-5 w-5" />
-              <span className="font-medium">
-                {user.role === 'admin' ? 'Administration Dashboard' : 'Employee Portal'}
-              </span>
-            </div>
+            <span className="font-medium text-gray-600">
+              {user.role === 'admin' ? 'Administration Dashboard' : 'Employee Portal'}
+            </span>
           </div>
         </div>
       </header>
