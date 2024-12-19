@@ -13,15 +13,13 @@ from flask import make_response  # Add this import
 # CORS(app)
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
-
-# CORS(app, resources={
-#     r"/api/*": {
-#         "origins": ["http://209.38.41.138"],
-#         "methods": ["GET", "POST", "OPTIONS"],
-#         "allow_headers": ["Content-Type"]
-#     }
-# })
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://209.38.41.138","http://127.0.0.1","http://localhost"],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shifts.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -376,12 +374,12 @@ def init_db():
         if not Employee.query.first(): 
             # Create sample employees
             admin = Employee(
-                employee_id='33333',
+                employee_id='Admin',
                 name='admin',
                 role='admin',
                 is_priority=False
             )
-            admin.set_password('admin')
+            admin.set_password('Mm@997997')
             
             emp1 = Employee(
                 employee_id='11246',
@@ -889,7 +887,13 @@ def init_db():
             
             # Add all employees to the session
             db.session.add_all([
-                admin
+                admin, emp1, emp2, emp3, emp4, emp5, emp6, emp7, emp8, emp9, emp10,
+                emp11, emp12, emp13, emp14, emp15, emp16, emp17, emp18, emp19, emp20,
+                emp21, emp22, emp23, emp24, emp25, emp26, emp27, emp28, emp29, emp30,
+                emp31, emp32, emp33, emp34, emp35, emp36, emp37, emp38, emp39, emp40,
+                emp41, emp42, emp43, emp44, emp45, emp46, emp47, emp48, emp49, emp50,
+                emp51, emp52, emp53, emp54, emp55, emp56, emp57, emp58, emp59, emp60,
+                emp61, emp62, emp63
             ])
             
             # Commit the session to save the employees to the database
