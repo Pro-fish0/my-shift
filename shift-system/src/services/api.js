@@ -101,14 +101,13 @@ export const updateShiftCapacity = async (date, shiftType, change) => {
         },
         body: JSON.stringify({
             date,
-            shift_type: shiftType, // Changed to match your API naming convention
+            shift_type: shiftType,
             change
         }),
     });
 
     if (!response.ok) {
         const errorData = await response.json();
-        console.error('API error:', errorData);
         throw new Error(errorData.error || 'Failed to update shift capacity');
     }
 
