@@ -413,558 +413,559 @@ def update_shift_capacity():
 def init_db():
     with app.app_context():
         # Drop and recreate all tables
-        db.drop_all()
+        #db.drop_all()
         db.create_all()
         
-        # Add sample data if database is empty
-        if not Employee.query.first(): 
-            # Create sample employees
-            admin = Employee(
-                employee_id='Admin',
-                name='admin',
-                role='admin',
-                is_priority=False
-            )
-            admin.set_password('Mm@997997')
-            
-            emp1 = Employee(
-                employee_id='11246',
-                name='Lama Eidha Manaa Al-Khdeidi',
-                role='employee',
-                is_priority=False
-            )
-            emp1.set_password('L11246')
-            
-            emp2 = Employee(
-                employee_id='11249',
-                name='Hatim Bakheit Muqbil Al-Daadi',
-                role='employee',
-                is_priority=False
-            )
-            emp2.set_password('H11249')
-            
-            emp3 = Employee(
-                employee_id='11253',
-                name='Abdullah Hassan Salem Al-Talhi',
-                role='employee',
-                is_priority=False
-            )
-            emp3.set_password('A11253')
-            
-            emp4 = Employee(
-                employee_id='11254',
-                name='Salem Hassan Salem Al-Talhi',
-                role='employee',
-                is_priority=False
-            )
-            emp4.set_password('S11254')
-            
-            emp5 = Employee(
-                employee_id='11257',
-                name='Hadeel Ibrahim Barik Al-Mawlid',
-                role='employee',
-                is_priority=False
-            )
-            emp5.set_password('H11257')
-            
-            emp6 = Employee(
-                employee_id='11284',
-                name='Harith Abdullah Raziq Al-Hazmi',
-                role='employee',
-                is_priority=False
-            )
-            emp6.set_password('H11284')
-            
-            emp7 = Employee(
-                employee_id='11300',
-                name='Yazan Ibrahim Eidha Al-Jaidi',
-                role='employee',
-                is_priority=False
-            )
-            emp7.set_password('Y11300')
-            
-            emp8 = Employee(
-                employee_id='100094',
-                name='Falwah Khalid Eidha Al-Nufai',
-                role='employee',
-                is_priority=False
-            )
-            emp8.set_password('F100094')
-            
-            emp9 = Employee(
-                employee_id='100100',
-                name='Ghada Mohammed Maadh Al-Shahri',
-                role='employee',
-                is_priority=False
-            )
-            emp9.set_password('G100100')
-            
-            emp10 = Employee(
-                employee_id='100104',
-                name='Abdullah Ali Ahmed Al-Sharif',
-                role='employee',
-                is_priority=False
-            )
-            emp10.set_password('A100104')
-            
-            emp11 = Employee(
-                employee_id='100108',
-                name='Shawq Abdullah Madi Khal Al-Mutairi',
-                role='employee',
-                is_priority=False
-            )
-            emp11.set_password('S100108')
-            
-            emp12 = Employee(
-                employee_id='100111',
-                name='Ghadir Aayed Odeh Al-Dhubaiani',
-                role='employee',
-                is_priority=False
-            )
-            emp12.set_password('G100111')
-            
-            emp13 = Employee(
-                employee_id='11247',
-                name='Ghassan Habib Mohammed Hawasawi',
-                role='employee',
-                is_priority=False
-            )
-            emp13.set_password('G11247')
-            
-            emp14 = Employee(
-                employee_id='11248',
-                name='Riham Adnan Jamil Ramadan',
-                role='employee',
-                is_priority=False
-            )
-            emp14.set_password('R11248')
-            
-            emp15 = Employee(
-                employee_id='11267',
-                name='Osama Mohammed Ali Bahadad',
-                role='employee',
-                is_priority=False
-            )
-            emp15.set_password('O11267')
-            
-            emp16 = Employee(
-                employee_id='11283',
-                name='Ahmed Mohsen Mohammed Al-Suhimi',
-                role='employee',
-                is_priority=False
-            )
-            emp16.set_password('A11283')
-            
-            emp17 = Employee(
-                employee_id='11287',
-                name='Fahd Mohammed Omar Al-Sufyani',
-                role='employee',
-                is_priority=False
-            )
-            emp17.set_password('F11287')
-            
-            emp18 = Employee(
-                employee_id='11303',
-                name='Waleed Khalid Saeed Barhim',
-                role='employee',
-                is_priority=False
-            )
-            emp18.set_password('W11303')
-            
-            emp19 = Employee(
-                employee_id='100001',
-                name='Ahmed Mohammed Ahmed Al-Amari',
-                role='employee',
-                is_priority=False
-            )
-            emp19.set_password('A100001')
-            
-            emp20 = Employee(
-                employee_id='100005',
-                name='Manal Saad Zaid Al-Buqami',
-                role='employee',
-                is_priority=False
-            )
-            emp20.set_password('M100005')
-            
-            emp21 = Employee(
-                employee_id='100102',
-                name='Rana Awad Eid Al-Sawat',
-                role='employee',
-                is_priority=False
-            )
-            emp21.set_password('R100102')
-            
-            emp22 = Employee(
-                employee_id='100107',
-                name='Thuraya Mohammed Ahmed Shomali',
-                role='employee',
-                is_priority=False
-            )
-            emp22.set_password('T100107')
-            
-            emp23 = Employee(
-                employee_id='100112',
-                name='Maha Maadh Awad Al-Zahrani',
-                role='employee',
-                is_priority=False
-            )
-            emp23.set_password('M100112')
-            
-            emp24 = Employee(
-                employee_id='100113',
-                name='Lamia Saud Yahya Al-Ghamdi',
-                role='employee',
-                is_priority=False
-            )
-            emp24.set_password('L100113')
-            
-            emp25 = Employee(
-                employee_id='11250',
-                name='Thamer Jaber Habab Al-Nufai',
-                role='employee',
-                is_priority=False
-            )
-            emp25.set_password('T11250')
-            
-            emp26 = Employee(
-                employee_id='11256',
-                name='Adel Ali Mahdi Al-Shahri',
-                role='employee',
-                is_priority=False
-            )
-            emp26.set_password('A11256')
-            
-            emp27 = Employee(
-                employee_id='11260',
-                name='Marwa Mohammed Musa Hussein',
-                role='employee',
-                is_priority=False
-            )
-            emp27.set_password('M11260')
-            
-            emp28 = Employee(
-                employee_id='11265',
-                name='Tahani Matar Qashimah Al-Hudhali',
-                role='employee',
-                is_priority=False
-            )
-            emp28.set_password('T11265')
-            
-            emp29 = Employee(
-                employee_id='11266',
-                name='Asma Mohammed Naseeb Al-Zahrani',
-                role='employee',
-                is_priority=False
-            )
-            emp29.set_password('A11266')
-            
-            emp30 = Employee(
-                employee_id='11285',
-                name='Khalid Aliwi Ali Al-Qurashi',
-                role='employee',
-                is_priority=False
-            )
-            emp30.set_password('K11285')
-            
-            emp31 = Employee(
-                employee_id='11289',
-                name='Nouf Jalal Marzouq Al-Khdeidi',
-                role='employee',
-                is_priority=False
-            )
-            emp31.set_password('N11289')
-            
-            emp32 = Employee(
-                employee_id='11292',
-                name='Bayan Mohammed Mahmoud Al-Sabhi',
-                role='employee',
-                is_priority=False
-            )
-            emp32.set_password('B11292')
-            
-            emp33 = Employee(
-                employee_id='11293',
-                name='Maher Abdullah Atiq Al-Muhmadi',
-                role='employee',
-                is_priority=False
-            )
-            emp33.set_password('M11293')
-            
-            emp34 = Employee(
-                employee_id='100013',
-                name='Iman Qasim Jamal Khan',
-                role='employee',
-                is_priority=False
-            )
-            emp34.set_password('I100013')
-            
-            emp35 = Employee(
-                employee_id='100091',
-                name='Dania Samir Abdulghani Maqliya',
-                role='employee',
-                is_priority=False
-            )
-            emp35.set_password('D100091')
-            
-            emp36 = Employee(
-                employee_id='100101',
-                name='Heba Mohammed Harmeen Mandeel',
-                role='employee',
-                is_priority=False
-            )
-            emp36.set_password('H100101')
-            
-            emp37 = Employee(
-                employee_id='100103',
-                name='Hajar Hassan Saleh Al-Zahrani',
-                role='employee',
-                is_priority=False
-            )
-            emp37.set_password('H100103')
-            
-            emp38 = Employee(
-                employee_id='11244',
-                name='Mohammed Abdulrahman Mohammed Al-Qarni',
-                role='employee',
-                is_priority=False
-            )
-            emp38.set_password('M11244')
-            
-            emp39 = Employee(
-                employee_id='11251',
-                name='Ashwaq Majid Dheef Allah Al-Harbi',
-                role='employee',
-                is_priority=False
-            )
-            emp39.set_password('A11251')
-            
-            emp40 = Employee(
-                employee_id='11258',
-                name='Bashayer Sami Salem Ghandoura',
-                role='employee',
-                is_priority=False
-            )
-            emp40.set_password('B11258')
-            
-            emp41 = Employee(
-                employee_id='11259',
-                name='Dalia Samir Ali Ashour',
-                role='employee',
-                is_priority=False
-            )
-            emp41.set_password('D11259')
-            
-            emp42 = Employee(
-                employee_id='11262',
-                name='Anbar Mabrook Saad Al-Harbi',
-                role='employee',
-                is_priority=False
-            )
-            emp42.set_password('A11262')
-            
-            emp43 = Employee(
-                employee_id='11263',
-                name='Abdullah Awad Saeed Al-Ghamdi',
-                role='employee',
-                is_priority=False
-            )
-            emp43.set_password('A11263')
-            
-            emp44 = Employee(
-                employee_id='11268',
-                name='Mansour Ahmed Ayesh Al-Zanini',
-                role='employee',
-                is_priority=False
-            )
-            emp44.set_password('M11268')
-            
-            emp45 = Employee(
-                employee_id='11269',
-                name='Majed Ali Salem Al-Harthi',
-                role='employee',
-                is_priority=False
-            )
-            emp45.set_password('M11269')
-            
-            emp46 = Employee(
-                employee_id='11301',
-                name='Maram Abdullah Abdulrahman Al-Jafri',
-                role='employee',
-                is_priority=False
-            )
-            emp46.set_password('M11301')
-            
-            emp47 = Employee(
-                employee_id='11433',
-                name='Mohammed Abdulhafiz Ibrahim Al-Falati',
-                role='employee',
-                is_priority=False
-            )
-            emp47.set_password('M11433')
-            
-            emp48 = Employee(
-                employee_id='100098',
-                name='Lujain Saeed Ahmed Al-Bashri',
-                role='employee',
-                is_priority=False
-            )
-            emp48.set_password('L100098')
-            
-            emp49 = Employee(
-                employee_id='100099',
-                name='Rehab Aaidh Sattar Al-Jaidi',
-                role='employee',
-                is_priority=False
-            )
-            emp49.set_password('R100099')
-            
-            emp50 = Employee(
-                employee_id='100110',
-                name='Shifa Shukri Ahmed Abdulraouf',
-                role='employee',
-                is_priority=False
-            )
-            emp50.set_password('S100110')
-            
-            emp51 = Employee(
-                employee_id='11242',
-                name='Faris Abdullah Maeesh Al-Otaibi',
-                role='employee',
-                is_priority=False
-            )
-            emp51.set_password('F11242')
-            
-            emp52 = Employee(
-                employee_id='11245',
-                name='Mohammed Khalid Radad Al-Harthi',
-                role='employee',
-                is_priority=False
-            )
-            emp52.set_password('M11245')
-            
-            emp53 = Employee(
-                employee_id='11261',
-                name='Abeer Ibrahim Maadh Al-Zahrani',
-                role='employee',
-                is_priority=False
-            )
-            emp53.set_password('A11261')
-            
-            emp54 = Employee(
-                employee_id='11270',
-                name='Abdulilah Osman Hadi Ayoub',
-                role='employee',
-                is_priority=False
-            )
-            emp54.set_password('A11270')
-            
-            emp55 = Employee(
-                employee_id='11288',
-                name='Worood Batieh Maawad Al-Hudhali',
-                role='employee',
-                is_priority=False
-            )
-            emp55.set_password('W11288')
-            
-            emp56 = Employee(
-                employee_id='11291',
-                name='Wadyan Saleh Ghrom Allah Al-Ghamdi',
-                role='employee',
-                is_priority=False
-            )
-            emp56.set_password('W11291')
-            
-            emp57 = Employee(
-                employee_id='11302',
-                name='Abdulmohsen Suhail Habab Al-Otaibi',
-                role='employee',
-                is_priority=False
-            )
-            emp57.set_password('A11302')
-            
-            emp58 = Employee(
-                employee_id='100092',
-                name='Asma Turki Hamoud Al-Harbi',
-                role='employee',
-                is_priority=False
-            )
-            emp58.set_password('A100092')
-            
-            emp59 = Employee(
-                employee_id='100093',
-                name='Mohammed Saeed Massoud Al-Harbi',
-                role='employee',
-                is_priority=False
-            )
-            emp59.set_password('M100093')
-            
-            emp60 = Employee(
-                employee_id='100095',
-                name='Reem Naji Abdulaziz Al-Ahmadi',
-                role='employee',
-                is_priority=False
-            )
-            emp60.set_password('R100095')
-            
-            emp61 = Employee(
-                employee_id='100096',
-                name='Fatimah Adlan Hasan Al-Shamrani',
-                role='employee',
-                is_priority=False
-            )
-            emp61.set_password('F100096')
-            
-            emp62 = Employee(
-                employee_id='100097',
-                name='Abdullah Mohammed Eid Al-Otaibi',
-                role='employee',
-                is_priority=False
-            )
-            emp62.set_password('A100097')
-            
-            emp63 = Employee(
-                employee_id='100109',
-                name='Omnia Fawaz Talal Murad',
-                role='employee',
-                is_priority=False
-            )
-            emp63.set_password('A100109')
-            
-            # Add all employees to the session
-            db.session.add_all([
-                admin, emp1, emp2, emp3, emp4, emp5, emp6, emp7, emp8, emp9, emp10,
-                emp11, emp12, emp13, emp14, emp15, emp16, emp17, emp18, emp19, emp20,
-                emp21, emp22, emp23, emp24, emp25, emp26, emp27, emp28, emp29, emp30,
-                emp31, emp32, emp33, emp34, emp35, emp36, emp37, emp38, emp39, emp40,
-                emp41, emp42, emp43, emp44, emp45, emp46, emp47, emp48, emp49, emp50,
-                emp51, emp52, emp53, emp54, emp55, emp56, emp57, emp58, emp59, emp60,
-                emp61, emp62, emp63
-            ])
-            
-            # Commit the session to save the employees to the database
-            db.session.commit()
+#         # Add sample data if database is empty
+#         if not Employee.query.first(): 
+#             # Create sample employees
+#             admin = Employee(
+#                 employee_id='Admin',
+#                 name='admin',
+#                 role='admin',
+#                 is_priority=False
+#             )
+#             admin.set_password('Mm@997997')
+            
+#             emp1 = Employee(
+#                 employee_id='11246',
+#                 name='Lama Eidha Manaa Al-Khdeidi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp1.set_password('L11246')
+            
+#             emp2 = Employee(
+#                 employee_id='11249',
+#                 name='Hatim Bakheit Muqbil Al-Daadi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp2.set_password('H11249')
+            
+#             emp3 = Employee(
+#                 employee_id='11253',
+#                 name='Abdullah Hassan Salem Al-Talhi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp3.set_password('A11253')
+            
+#             emp4 = Employee(
+#                 employee_id='11254',
+#                 name='Salem Hassan Salem Al-Talhi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp4.set_password('S11254')
+            
+#             emp5 = Employee(
+#                 employee_id='11257',
+#                 name='Hadeel Ibrahim Barik Al-Mawlid',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp5.set_password('H11257')
+            
+#             emp6 = Employee(
+#                 employee_id='11284',
+#                 name='Harith Abdullah Raziq Al-Hazmi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp6.set_password('H11284')
+            
+#             emp7 = Employee(
+#                 employee_id='11300',
+#                 name='Yazan Ibrahim Eidha Al-Jaidi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp7.set_password('Y11300')
+            
+#             emp8 = Employee(
+#                 employee_id='100094',
+#                 name='Falwah Khalid Eidha Al-Nufai',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp8.set_password('F100094')
+            
+#             emp9 = Employee(
+#                 employee_id='100100',
+#                 name='Ghada Mohammed Maadh Al-Shahri',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp9.set_password('G100100')
+            
+#             emp10 = Employee(
+#                 employee_id='100104',
+#                 name='Abdullah Ali Ahmed Al-Sharif',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp10.set_password('A100104')
+            
+#             emp11 = Employee(
+#                 employee_id='100108',
+#                 name='Shawq Abdullah Madi Khal Al-Mutairi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp11.set_password('S100108')
+            
+#             emp12 = Employee(
+#                 employee_id='100111',
+#                 name='Ghadir Aayed Odeh Al-Dhubaiani',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp12.set_password('G100111')
+            
+#             emp13 = Employee(
+#                 employee_id='11247',
+#                 name='Ghassan Habib Mohammed Hawasawi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp13.set_password('G11247')
+            
+#             emp14 = Employee(
+#                 employee_id='11248',
+#                 name='Riham Adnan Jamil Ramadan',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp14.set_password('R11248')
+            
+#             emp15 = Employee(
+#                 employee_id='11267',
+#                 name='Osama Mohammed Ali Bahadad',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp15.set_password('O11267')
+            
+#             emp16 = Employee(
+#                 employee_id='11283',
+#                 name='Ahmed Mohsen Mohammed Al-Suhimi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp16.set_password('A11283')
+            
+#             emp17 = Employee(
+#                 employee_id='11287',
+#                 name='Fahd Mohammed Omar Al-Sufyani',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp17.set_password('F11287')
+            
+#             emp18 = Employee(
+#                 employee_id='11303',
+#                 name='Waleed Khalid Saeed Barhim',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp18.set_password('W11303')
+            
+#             emp19 = Employee(
+#                 employee_id='100001',
+#                 name='Ahmed Mohammed Ahmed Al-Amari',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp19.set_password('A100001')
+            
+#             emp20 = Employee(
+#                 employee_id='100005',
+#                 name='Manal Saad Zaid Al-Buqami',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp20.set_password('M100005')
+            
+#             emp21 = Employee(
+#                 employee_id='100102',
+#                 name='Rana Awad Eid Al-Sawat',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp21.set_password('R100102')
+            
+#             emp22 = Employee(
+#                 employee_id='100107',
+#                 name='Thuraya Mohammed Ahmed Shomali',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp22.set_password('T100107')
+            
+#             emp23 = Employee(
+#                 employee_id='100112',
+#                 name='Maha Maadh Awad Al-Zahrani',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp23.set_password('M100112')
+            
+#             emp24 = Employee(
+#                 employee_id='100113',
+#                 name='Lamia Saud Yahya Al-Ghamdi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp24.set_password('L100113')
+            
+#             emp25 = Employee(
+#                 employee_id='11250',
+#                 name='Thamer Jaber Habab Al-Nufai',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp25.set_password('T11250')
+            
+#             emp26 = Employee(
+#                 employee_id='11256',
+#                 name='Adel Ali Mahdi Al-Shahri',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp26.set_password('A11256')
+            
+#             emp27 = Employee(
+#                 employee_id='11260',
+#                 name='Marwa Mohammed Musa Hussein',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp27.set_password('M11260')
+            
+#             emp28 = Employee(
+#                 employee_id='11265',
+#                 name='Tahani Matar Qashimah Al-Hudhali',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp28.set_password('T11265')
+            
+#             emp29 = Employee(
+#                 employee_id='11266',
+#                 name='Asma Mohammed Naseeb Al-Zahrani',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp29.set_password('A11266')
+            
+#             emp30 = Employee(
+#                 employee_id='11285',
+#                 name='Khalid Aliwi Ali Al-Qurashi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp30.set_password('K11285')
+            
+#             emp31 = Employee(
+#                 employee_id='11289',
+#                 name='Nouf Jalal Marzouq Al-Khdeidi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp31.set_password('N11289')
+            
+#             emp32 = Employee(
+#                 employee_id='11292',
+#                 name='Bayan Mohammed Mahmoud Al-Sabhi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp32.set_password('B11292')
+            
+#             emp33 = Employee(
+#                 employee_id='11293',
+#                 name='Maher Abdullah Atiq Al-Muhmadi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp33.set_password('M11293')
+            
+#             emp34 = Employee(
+#                 employee_id='100013',
+#                 name='Iman Qasim Jamal Khan',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp34.set_password('I100013')
+            
+#             emp35 = Employee(
+#                 employee_id='100091',
+#                 name='Dania Samir Abdulghani Maqliya',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp35.set_password('D100091')
+            
+#             emp36 = Employee(
+#                 employee_id='100101',
+#                 name='Heba Mohammed Harmeen Mandeel',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp36.set_password('H100101')
+            
+#             emp37 = Employee(
+#                 employee_id='100103',
+#                 name='Hajar Hassan Saleh Al-Zahrani',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp37.set_password('H100103')
+            
+#             emp38 = Employee(
+#                 employee_id='11244',
+#                 name='Mohammed Abdulrahman Mohammed Al-Qarni',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp38.set_password('M11244')
+            
+#             emp39 = Employee(
+#                 employee_id='11251',
+#                 name='Ashwaq Majid Dheef Allah Al-Harbi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp39.set_password('A11251')
+            
+#             emp40 = Employee(
+#                 employee_id='11258',
+#                 name='Bashayer Sami Salem Ghandoura',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp40.set_password('B11258')
+            
+#             emp41 = Employee(
+#                 employee_id='11259',
+#                 name='Dalia Samir Ali Ashour',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp41.set_password('D11259')
+            
+#             emp42 = Employee(
+#                 employee_id='11262',
+#                 name='Anbar Mabrook Saad Al-Harbi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp42.set_password('A11262')
+            
+#             emp43 = Employee(
+#                 employee_id='11263',
+#                 name='Abdullah Awad Saeed Al-Ghamdi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp43.set_password('A11263')
+            
+#             emp44 = Employee(
+#                 employee_id='11268',
+#                 name='Mansour Ahmed Ayesh Al-Zanini',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp44.set_password('M11268')
+            
+#             emp45 = Employee(
+#                 employee_id='11269',
+#                 name='Majed Ali Salem Al-Harthi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp45.set_password('M11269')
+            
+#             emp46 = Employee(
+#                 employee_id='11301',
+#                 name='Maram Abdullah Abdulrahman Al-Jafri',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp46.set_password('M11301')
+            
+#             emp47 = Employee(
+#                 employee_id='11433',
+#                 name='Mohammed Abdulhafiz Ibrahim Al-Falati',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp47.set_password('M11433')
+            
+#             emp48 = Employee(
+#                 employee_id='100098',
+#                 name='Lujain Saeed Ahmed Al-Bashri',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp48.set_password('L100098')
+            
+#             emp49 = Employee(
+#                 employee_id='100099',
+#                 name='Rehab Aaidh Sattar Al-Jaidi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp49.set_password('R100099')
+            
+#             emp50 = Employee(
+#                 employee_id='100110',
+#                 name='Shifa Shukri Ahmed Abdulraouf',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp50.set_password('S100110')
+            
+#             emp51 = Employee(
+#                 employee_id='11242',
+#                 name='Faris Abdullah Maeesh Al-Otaibi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp51.set_password('F11242')
+            
+#             emp52 = Employee(
+#                 employee_id='11245',
+#                 name='Mohammed Khalid Radad Al-Harthi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp52.set_password('M11245')
+            
+#             emp53 = Employee(
+#                 employee_id='11261',
+#                 name='Abeer Ibrahim Maadh Al-Zahrani',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp53.set_password('A11261')
+            
+#             emp54 = Employee(
+#                 employee_id='11270',
+#                 name='Abdulilah Osman Hadi Ayoub',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp54.set_password('A11270')
+            
+#             emp55 = Employee(
+#                 employee_id='11288',
+#                 name='Worood Batieh Maawad Al-Hudhali',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp55.set_password('W11288')
+            
+#             emp56 = Employee(
+#                 employee_id='11291',
+#                 name='Wadyan Saleh Ghrom Allah Al-Ghamdi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp56.set_password('W11291')
+            
+#             emp57 = Employee(
+#                 employee_id='11302',
+#                 name='Abdulmohsen Suhail Habab Al-Otaibi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp57.set_password('A11302')
+            
+#             emp58 = Employee(
+#                 employee_id='100092',
+#                 name='Asma Turki Hamoud Al-Harbi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp58.set_password('A100092')
+            
+#             emp59 = Employee(
+#                 employee_id='100093',
+#                 name='Mohammed Saeed Massoud Al-Harbi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp59.set_password('M100093')
+            
+#             emp60 = Employee(
+#                 employee_id='100095',
+#                 name='Reem Naji Abdulaziz Al-Ahmadi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp60.set_password('R100095')
+            
+#             emp61 = Employee(
+#                 employee_id='100096',
+#                 name='Fatimah Adlan Hasan Al-Shamrani',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp61.set_password('F100096')
+            
+#             emp62 = Employee(
+#                 employee_id='100097',
+#                 name='Abdullah Mohammed Eid Al-Otaibi',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp62.set_password('A100097')
+            
+#             emp63 = Employee(
+#                 employee_id='100109',
+#                 name='Omnia Fawaz Talal Murad',
+#                 role='employee',
+#                 is_priority=False
+#             )
+#             emp63.set_password('A100109')
+            
+#             # Add all employees to the session
+#             db.session.add_all([
+#                 admin, emp1, emp2, emp3, emp4, emp5, emp6, emp7, emp8, emp9, emp10,
+#                 emp11, emp12, emp13, emp14, emp15, emp16, emp17, emp18, emp19, emp20,
+#                 emp21, emp22, emp23, emp24, emp25, emp26, emp27, emp28, emp29, emp30,
+#                 emp31, emp32, emp33, emp34, emp35, emp36, emp37, emp38, emp39, emp40,
+#                 emp41, emp42, emp43, emp44, emp45, emp46, emp47, emp48, emp49, emp50,
+#                 emp51, emp52, emp53, emp54, emp55, emp56, emp57, emp58, emp59, emp60,
+#                 emp61, emp62, emp63
+#             ])
+            
+#             # Commit the session to save the employees to the database
+#             db.session.commit()
 
             
 
-            # Create sample shift capacities for the next month
-            next_month = datetime.now().replace(day=1) + timedelta(days=32)
-            next_month = next_month.replace(day=1)
+#             # Create sample shift capacities for the next month
+#             next_month = datetime.now().replace(day=1) + timedelta(days=32)
+#             next_month = next_month.replace(day=1)
             
-            for day in range(1, 32):
-                try:
-                    date = next_month.replace(day=day)
-                    shifts = [
-                        ShiftCapacity(date=date, shift_type='Morning', capacity=12),
-                        ShiftCapacity(date=date, shift_type='Evening', capacity=14),
-                        ShiftCapacity(date=date, shift_type='Night', capacity=12)
-                    ]
-                    db.session.add_all(shifts)
-                except ValueError:
-                    # Skip invalid dates (e.g., February 31)
-                    pass
+#             for day in range(1, 32):
+#                 try:
+#                     date = next_month.replace(day=day)
+#                     shifts = [
+#                         ShiftCapacity(date=date, shift_type='Morning', capacity=12),
+#                         ShiftCapacity(date=date, shift_type='Evening', capacity=14),
+#                         ShiftCapacity(date=date, shift_type='Night', capacity=12)
+#                     ]
+#                     db.session.add_all(shifts)
+#                 except ValueError:
+#                     # Skip invalid dates (e.g., February 31)
+#                     pass
             
-            db.session.commit()
+#             db.session.commit()
+
 
 if __name__ == '__main__':
     init_db()
