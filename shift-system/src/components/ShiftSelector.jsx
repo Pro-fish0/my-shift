@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import { getShiftCapacities, submitShiftSelections, getEmployeeShifts } from '../services/api';
+import { getShiftCapacities, submitShiftSelections, getEmployeeShifts,updateShiftCapacity } from '../services/api';
 
 const ShiftSelector = ({ employeeId }) => {
   // State declarations
