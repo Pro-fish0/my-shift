@@ -26,4 +26,6 @@ ignor/
 *.sw?
 ignor/
 
+shift-system/src/data/users.js
 src/data/users.js
+shift-system\src\data\users.js
