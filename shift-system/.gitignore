@@ -25,3 +25,5 @@ ignor/
 *.sln
 *.sw?
 ignor/
+
+src/data/users.js
