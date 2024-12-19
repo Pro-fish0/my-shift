@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getShiftCapacities, setShiftCapacity } from '../services/api';
+import { getShiftCapacities, setShiftCapacity,exportSchedule } from '../services/api';
 
 const AdminDashboard = () => {
   const [capacities, setCapacities] = useState({});
@@ -85,22 +85,39 @@ const AdminDashboard = () => {
     } finally {
         setIsSaving(false);
     }
+  
 };
-
-const fetchCapacities = async () => {
+  const handleExport = async () => {
     try {
-        // Create date string for first day of selected month
-        const date = `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-01`;
-        console.log('Fetching capacities for:', date);  // Debug log
-        
-        const data = await getShiftCapacities(date);
-        setCapacities(data);
-    } catch (err) {
-        setError('Failed to load shift capacities');
-    } finally {
-        setIsLoading(false);
+        const blob = await exportSchedule(selectedDate.month, selectedDate.year);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `schedule_${selectedDate.year}_${selectedDate.month}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Export error:', error);
+        alert('Failed to export schedule');
     }
-};
+  };
+
+  const fetchCapacities = async () => {
+      try {
+          // Create date string for first day of selected month
+          const date = `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-01`;
+          console.log('Fetching capacities for:', date);  // Debug log
+          
+          const data = await getShiftCapacities(date);
+          setCapacities(data);
+      } catch (err) {
+          setError('Failed to load shift capacities');
+      } finally {
+          setIsLoading(false);
+      }
+  };
   if (isLoading) {
     return <div className="text-center p-4">Loading...</div>;
   }
@@ -158,6 +175,12 @@ const fetchCapacities = async () => {
             >
               {isSaving ? 'Saving...' : 'Save All Changes'}
             </button>
+            <button
+            onClick={handleExport}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+        >
+            Export Schedule (CSV)
+        </button>
           </div>
         </div>
 

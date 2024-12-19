@@ -3,15 +3,23 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import send_file
+import csv
+from io import StringIO
+from flask import make_response  # Add this import
+
 
 app = Flask(__name__)
-CORS(app, resources={
-    r"/api/*": {
-        "origins": ["http://209.38.41.138"],
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
-    }
-})
+CORS(app)
+
+# app = Flask(__name__)
+# CORS(app, resources={
+#     r"/api/*": {
+#         "origins": ["http://209.38.41.138"],
+#         "methods": ["GET", "POST", "OPTIONS"],
+#         "allow_headers": ["Content-Type"]
+#     }
+# })
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shifts.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -53,7 +61,7 @@ class ShiftSelection(db.Model):
         db.UniqueConstraint('employee_id', 'date'),
     )
 
-# API Routes
+#API Routes
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.json
@@ -302,53 +310,86 @@ def get_employee_shifts(employee_id):
         print(f"Error getting employee shifts: {str(e)}")  # Debug log
         return jsonify({'error': str(e)}), 400
 
+@app.route('/api/export/schedule', methods=['GET'])
+def export_schedule():
+    try:
+        month = request.args.get('month', type=int)
+        year = request.args.get('year', type=int)
+        
+        if not month or not year:
+            return jsonify({'error': 'Month and year are required'}), 400
+
+        # Get all shifts for the month
+        shifts = ShiftSelection.query.filter(
+            ShiftSelection.date >= f"{year}-{month:02d}-01",
+            ShiftSelection.date < f"{year}-{month+1:02d}-01" if month < 12 else f"{year+1}-01-01"
+        ).order_by(ShiftSelection.employee_id, ShiftSelection.date).all()
+
+        # Create CSV data
+        csv_data = "Employee_ID"
+        for day in range(1, 32):
+            csv_data += f",{day}"
+        csv_data += "\n"
+
+        current_employee = None
+        day_shifts = []
+
+        for shift in shifts:
+            if current_employee != shift.employee_id:
+                if current_employee is not None:
+                    while len(day_shifts) < 31:
+                        day_shifts.append('O')
+                    csv_data += f"{current_employee},{','.join(day_shifts)}\n"
+                current_employee = shift.employee_id
+                day_shifts = ['O'] * 31
+
+            day_index = shift.date.day - 1
+            shift_code = 'M' if shift.shift_type == 'Morning' else 'E' if shift.shift_type == 'Evening' else 'N'
+            day_shifts[day_index] = shift_code
+
+        # Add last employee's data
+        if current_employee is not None:
+            while len(day_shifts) < 31:
+                day_shifts.append('O')
+            csv_data += f"{current_employee},{','.join(day_shifts)}\n"
+
+        # Create response
+        response = make_response(csv_data)
+        response.headers['Content-Type'] = 'text/csv'
+        response.headers['Content-Disposition'] = f'attachment; filename=schedule_{year}_{month}.csv'
+        return response
+
+    except Exception as e:
+        print(f"Error exporting schedule: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+    
 # Initialize database
 def init_db():
     with app.app_context():
         # Drop and recreate all tables
-        db.drop_all()
-        db.create_all()
+        #db.drop_all()
+        #db.create_all()
         
         # Add sample data if database is empty
-        if not Employee.query.first():
+        if not Employee.query.first(): 
             # Create sample employees
             admin = Employee(
-                employee_id='admin',
-                name='Admin User',
+                employee_id='33333',
+                name='admin',
                 role='admin',
                 is_priority=False
             )
             admin.set_password('admin')
+
             
-            # Create sample employees
-
-            emp1 = Employee(
-                employee_id='t997',
-                name='Mr. Talal Al Harby',
-                role='employee',
-                is_priority=False
-            )
-            emp1.set_password('t997')
-
-            emp2 = Employee(
-                employee_id='w997',
-                name='Wafa Almagrbi',
-                role='employee',
-                is_priority=False
-            )
-            emp2.set_password('w997')
-
-            emp3 = Employee(
-                employee_id='m997',
-                name='Mansour Alzahrani',
-                role='employee',
-                is_priority=False
-            )
-            emp3.set_password('m997')
-
-            # Add the new employees to the session (excluding emp4)
+            # Add all employees to the session
+            db.session.add_all([
+                admin
+            ])
             
-            db.session.add_all([admin, emp1, emp2, emp3])
+            # Commit the session to save the employees to the database
+            db.session.commit()
+
             
 
             # Create sample shift capacities for the next month
@@ -359,9 +400,9 @@ def init_db():
                 try:
                     date = next_month.replace(day=day)
                     shifts = [
-                        ShiftCapacity(date=date, shift_type='Morning', capacity=10),
-                        ShiftCapacity(date=date, shift_type='Evening', capacity=12),
-                        ShiftCapacity(date=date, shift_type='Night', capacity=8)
+                        ShiftCapacity(date=date, shift_type='Morning', capacity=12),
+                        ShiftCapacity(date=date, shift_type='Evening', capacity=14),
+                        ShiftCapacity(date=date, shift_type='Night', capacity=12)
                     ]
                     db.session.add_all(shifts)
                 except ValueError:

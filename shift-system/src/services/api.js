@@ -1,4 +1,4 @@
-const API_URL = 'http://209.38.41.138/api';
+const API_URL = 'http://localhost:5000/api';
 
 export const loginUser = async (employeeId, password) => {
     const response = await fetch(`${API_URL}/auth/login`, {
@@ -76,3 +76,20 @@ export const getEmployeeShifts = async (employeeId, date) => {
     }
     return response.json();
 };
+
+
+export const exportSchedule = async (month, year) => {
+    const response = await fetch(`${API_URL}/export/schedule?month=${month}&year=${year}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'text/csv'
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error('Failed to export schedule');
+    }
+    
+    return response.blob();
+};
+
