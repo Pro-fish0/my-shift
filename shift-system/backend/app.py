@@ -395,10 +395,14 @@ def update_shift_capacity():
         if new_selections < 0 or new_selections > capacity.capacity:
             return jsonify({'error': 'Invalid capacity change'}), 400
 
-        # Return updated capacity info
+        # Return updated capacity info with more details
         return jsonify({
             'success': True,
-            'available': capacity.capacity - new_selections
+            'total': capacity.capacity,
+            'taken': new_selections,
+            'available': capacity.capacity - new_selections,
+            'date': date.isoformat(),
+            'shift_type': shift_type
         })
 
     except Exception as e:

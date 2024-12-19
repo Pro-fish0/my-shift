@@ -47,22 +47,27 @@ const AdminDashboard = () => {
   const getCapacity = (day, shiftType) => {
     const key = `${day}_${shiftType}`;
     if (unsavedChanges[key]) {
-      return unsavedChanges[key].value;
+        return unsavedChanges[key].value;
     }
-    return capacities[key]?.total || 0;
-  };
+    const capacity = capacities[key];
+    if (capacity) {
+        return `${capacity.available}/${capacity.total}`;  // Show available/total format
+    }
+    return '0/0';
+};
 
   const handleCapacityChange = (day, shiftType, value) => {
-    const key = `${day}_${shiftType}`;
-    setUnsavedChanges(prev => ({
-      ...prev,
-      [key]: {
-        day,
-        shiftType,
-        value: value === '' ? '' : parseInt(value)
-      }
-    }));
+      const key = `${day}_${shiftType}`;
+      setUnsavedChanges(prev => ({
+          ...prev,
+          [key]: {
+              day,
+              shiftType,
+              value: value === '' ? '' : parseInt(value)
+          }
+      }));
   };
+
 
   const handleSubmit = async () => {
     setIsSaving(true);
@@ -209,22 +214,28 @@ const AdminDashboard = () => {
                     
                     return (
                       <div
-                        key={`${day}-${shift.name}`}
-                        className={`
+                      key={`${day}-${shift.name}`}
+                      className={`
                           flex-1 relative ${shift.color}
                           ${hasChanges ? 'ring-2 ring-blue-400 ring-inset' : ''}
-                        `}
-                      >
-                        <input
+                      `}
+                  >
+                      <input
                           type="number"
                           min="0"
-                          value={getCapacity(day, shift.name)}
+                          value={getCapacity(day, shift.name).split('/')[0]}
                           onChange={(e) => handleCapacityChange(day, shift.name, e.target.value)}
                           className="absolute inset-0 w-full h-full bg-transparent 
                                    text-center focus:outline-none focus:ring-2 
                                    focus:ring-blue-500 ring-inset"
-                        />
+                      />
+                      <div className="absolute bottom-0 right-1 text-xs text-gray-500">
+                          Total: {capacities[`${day}_${shift.name}`]?.total || 0}
                       </div>
+                      <div className="absolute top-0 right-1 text-xs text-gray-500">
+                          Available: {capacities[`${day}_${shift.name}`]?.available || 0}
+                      </div>
+                  </div>
                     );
                   })}
                 </div>
