@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Calendar, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { getShiftCapacities, submitShiftSelections, getEmployeeShifts } from '../services/api';
 
 const ShiftSelector = ({ employeeId }) => {
@@ -165,32 +166,109 @@ const ShiftSelector = ({ employeeId }) => {
   if (error) {
     return <div className="text-center p-4 text-red-600">{error}</div>;
   }
+
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <div className="mb-6 bg-white rounded-lg shadow-md p-4">
-        <h1 className="text-2xl font-bold mb-4">
-          {hasSchedule ? 'Your Schedule' : 'Shift Selection'} - {getMonthName(month)} {year}
-        </h1>
-
-        {!hasSchedule && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            <div className="bg-gray-50 p-3 rounded-lg">
-              <div className="text-sm text-gray-500">Total Selected</div>
-              <div className="text-2xl font-bold">{selectedShifts.length}/20</div>
+      <div className="mb-6 bg-white rounded-lg shadow-md">
+        {/* Enhanced Header Section */}
+        <div className="border-b border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Calendar className="h-6 w-6 text-blue-600" />
+              <h1 className="text-2xl font-bold text-gray-900">
+                {hasSchedule ? 'Your Schedule' : 'Shift Selection'}
+              </h1>
             </div>
+            <div className="flex items-center space-x-2">
+              <Clock className="h-5 w-5 text-gray-500" />
+              <span className="text-lg font-medium text-gray-700">
+                {getMonthName(month)} {year}
+              </span>
+            </div>
+          </div>
+
+          {!hasSchedule && (
+            <div className="mt-4 text-sm text-gray-600">
+              Select your preferred shifts for next month. You must select exactly 20 shifts,
+              with a maximum of 7 shifts per shift type and no more than 9 consecutive days.
+            </div>
+          )}
+        </div>
+
+        {/* Enhanced Status Cards */}
+        {!hasSchedule && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 border-b border-gray-200">
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-medium text-blue-600">Total Selected</div>
+                  <div className="mt-1 text-2xl font-bold text-blue-700">
+                    {selectedShifts.length}/20
+                  </div>
+                </div>
+                {selectedShifts.length === 20 ? (
+                  <CheckCircle className="h-8 w-8 text-blue-500" />
+                ) : (
+                  <AlertCircle className="h-8 w-8 text-blue-400" />
+                )}
+              </div>
+              <div className="mt-1 text-xs text-blue-600">
+                {20 - selectedShifts.length} shifts remaining
+              </div>
+            </div>
+
             {shifts.map(shift => (
-              <div key={shift.name} className="bg-gray-50 p-3 rounded-lg">
-                <div className="text-sm text-gray-500">{shift.name} Shifts</div>
-                <div className="text-2xl font-bold">
-                  {getShiftTypeCount(shift.name)}/7
+              <div key={shift.name} 
+                   className={`rounded-xl p-4 border ${
+                     shift.name === 'Morning' ? 'bg-blue-50 border-blue-100' :
+                     shift.name === 'Evening' ? 'bg-orange-50 border-orange-100' :
+                     'bg-purple-50 border-purple-100'
+                   }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className={`text-sm font-medium ${
+                      shift.name === 'Morning' ? 'text-blue-600' :
+                      shift.name === 'Evening' ? 'text-orange-600' :
+                      'text-purple-600'
+                    }`}>{shift.name} Shifts</div>
+                    <div className={`mt-1 text-2xl font-bold ${
+                      shift.name === 'Morning' ? 'text-blue-700' :
+                      shift.name === 'Evening' ? 'text-orange-700' :
+                      'text-purple-700'
+                    }`}>
+                      {getShiftTypeCount(shift.name)}/7
+                    </div>
+                  </div>
+                  {getShiftTypeCount(shift.name) === 7 ? (
+                    <CheckCircle className={`h-8 w-8 ${
+                      shift.name === 'Morning' ? 'text-blue-500' :
+                      shift.name === 'Evening' ? 'text-orange-500' :
+                      'text-purple-500'
+                    }`} />
+                  ) : (
+                    <Clock className={`h-8 w-8 ${
+                      shift.name === 'Morning' ? 'text-blue-400' :
+                      shift.name === 'Evening' ? 'text-orange-400' :
+                      'text-purple-400'
+                    }`} />
+                  )}
+                </div>
+                <div className={`mt-1 text-xs ${
+                  shift.name === 'Morning' ? 'text-blue-600' :
+                  shift.name === 'Evening' ? 'text-orange-600' :
+                  'text-purple-600'
+                }`}>
+                  {7 - getShiftTypeCount(shift.name)} shifts remaining
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        <div className="grid grid-cols-7 gap-2">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+        {/* Keep existing calendar grid and buttons */}
+        <div className="p-6">
+          <div className="grid grid-cols-7 gap-2">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
             <div key={day} className="text-center font-semibold py-2">
               {day}
             </div>
@@ -274,23 +352,28 @@ const ShiftSelector = ({ employeeId }) => {
               </div>
             );
           })}
+          </div>
         </div>
       </div>
 
+      {/* Enhanced Action Buttons */}
       {!hasSchedule && (
-        <div className="flex gap-4 justify-end">
+        <div className="flex gap-4 justify-end mt-6">
           <button
             onClick={() => setSelectedShifts([])}
-            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 
+                     transition-colors border border-gray-300 font-medium"
           >
             Clear Selection
           </button>
           <button
             onClick={handleSubmit}
             disabled={selectedShifts.length !== 20}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors
-                     disabled:bg-gray-300 disabled:hover:bg-gray-300 disabled:cursor-not-allowed"
+            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
+                     transition-colors disabled:bg-gray-300 disabled:hover:bg-gray-300 
+                     disabled:cursor-not-allowed font-medium flex items-center gap-2"
           >
+            <CheckCircle className="h-5 w-5" />
             Submit Selection
           </button>
         </div>

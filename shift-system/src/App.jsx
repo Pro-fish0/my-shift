@@ -1,26 +1,23 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
+import { User, LogOut, Building2 } from 'lucide-react';
 import Login from './components/Login';
 import ShiftSelector from './components/ShiftSelector';
 import AdminDashboard from './components/AdminDashboard';
 
 function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = React.useState(null);
 
-  // Optional: Persist user session using localStorage
-  useEffect(() => {
+  React.useEffect(() => {
     const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     if (storedUser && token) {
       setUser(JSON.parse(storedUser));
-      // Optionally, verify token validity here
     }
   }, []);
 
   const handleLogin = (userData) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
-    // Optionally, store token if available
-    // localStorage.setItem('token', userData.token);
   };
 
   const handleLogout = () => {
@@ -35,30 +32,57 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            {/* Logo */}
-            <div className="flex items-center">
-            <img src="/images/logo.png" alt="SRCA Logo" className="srca-logo" />
+      {/* Main Header */}
+      <header className="bg-white border-b">
+        <div className="max-w-7xl mx-auto">
+          {/* Top Header with Logo and User Info */}
+          <div className="h-16 flex items-center justify-between px-4 relative">
+            {/* Logo Section */}
+            <div className="flex items-center space-x-2">
+              <div className="flex-shrink-0">
+                <img src="/images/logo.png" alt="SRCA Logo" className="h-10 w-auto" />
+              </div>
+              <div className="hidden md:flex flex-col">
+                <span className="text-lg font-semibold text-gray-900">SRCA</span>
+                <span className="text-sm text-gray-500">Shift Management</span>
+              </div>
             </div>
-            {/* User Info and Logout */}
-            <div className="flex items-center gap-4">
-              <span className="text-gray-700">Welcome, {user.name}</span>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                Logout
-              </button>
+
+            {/* Centered User Info */}
+            <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2
+                          flex items-center space-x-3 bg-gray-50 px-4 py-2 rounded-full">
+              <User className="h-5 w-5 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">{user.name}</span>
+              <span className="h-4 w-px bg-gray-300"></span>
+              <span className="text-sm text-gray-500">{user.role}</span>
+            </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center px-4 py-2 bg-red-50 text-red-700 
+                       rounded-lg hover:bg-red-100 transition-colors duration-200 
+                       space-x-2 border border-red-200"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </button>
+          </div>
+
+          {/* Bottom Header with Current Section */}
+          <div className="h-12 border-t flex items-center px-4 bg-gray-50">
+            <div className="flex items-center space-x-2 text-gray-600">
+              <Building2 className="h-5 w-5" />
+              <span className="font-medium">
+                {user.role === 'admin' ? 'Administration Dashboard' : 'Employee Portal'}
+              </span>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-6">
         {user.role === 'admin' ? (
           <AdminDashboard />
         ) : (
