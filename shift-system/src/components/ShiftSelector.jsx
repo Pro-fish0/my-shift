@@ -98,41 +98,21 @@ const ShiftSelector = ({ employeeId }) => {
   }, [month, year]);
 
   // Event handlers
-  const handleShiftClick = async (day, shiftType) => {
+  const handleShiftClick = (day, shiftType) => {
     if (hasSchedule || !hasAvailability(day, shiftType)) return;
   
     const isSelected = selectedShifts.some(
       s => s.day === day && s.shift_type === shiftType
     );
   
-    const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  
     if (isSelected) {
-      try {
-        // When deselecting, increase available capacity by 1
-        await updateShiftCapacity(date, shiftType, 1);
-        
-        setSelectedShifts(shifts => 
-          shifts.filter(s => !(s.day === day && s.shift_type === shiftType))
-        );
-        
-        // Update local capacity state
-        const key = `${day}_${shiftType}`;
-        setCapacities(prev => ({
-          ...prev,
-          [key]: {
-            ...prev[key],
-            available: prev[key].available + 1
-          }
-        }));
-      } catch (err) {
-        alert('Failed to update shift capacity. Please try again.');
-        return;
-      }
+      setSelectedShifts(shifts => 
+        shifts.filter(s => !(s.day === day && s.shift_type === shiftType))
+      );
       return;
     }
   
-    // All existing checks
+    // All existing checks remain the same
     if (selectedShifts.some(s => s.day === day)) return;
   
     if (getShiftTypeCount(shiftType) >= 7) {
@@ -151,24 +131,7 @@ const ShiftSelector = ({ employeeId }) => {
       return;
     }
   
-    try {
-      // When selecting, decrease available capacity by 1
-      await updateShiftCapacity(date, shiftType, -1);
-      
-      setSelectedShifts(newShifts);
-      
-      // Update local capacity state
-      const key = `${day}_${shiftType}`;
-      setCapacities(prev => ({
-        ...prev,
-        [key]: {
-          ...prev[key],
-          available: prev[key].available - 1
-        }
-      }));
-    } catch (err) {
-      alert('Failed to update shift capacity. Please try again.');
-    }
+    setSelectedShifts(newShifts);
   };
   
   const handleSubmit = async () => {
@@ -183,16 +146,22 @@ const ShiftSelector = ({ employeeId }) => {
         shift_type: shift.shift_type
       }));
   
+      // First, update all capacities
+      const capacityUpdates = formattedShifts.map(shift => 
+        updateShiftCapacity(shift.date, shift.shift_type, -1)
+      );
+      
+      await Promise.all(capacityUpdates);
+  
+      // Then submit the selections
       await submitShiftSelections(employeeId, formattedShifts);
       
-      // No need to update capacities here since they're already updated during selection
       alert('Shifts submitted successfully!');
       setSelectedShifts([]);
-      await fetchCapacities(); // Refresh just to ensure consistency
+      await fetchCapacities();
       await fetchEmployeeShifts();
     } catch (err) {
       alert(err.message || 'Failed to submit shifts. Please try again.');
-      // Optionally, you could add capacity rollback here if submission fails
     }
   };
 
