@@ -15,8 +15,8 @@ from flask import make_response  # Add this import
 app = Flask(__name__)
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://209.38.41.138","http://127.0.0.1","http://localhost"],
-        "methods": ["GET", "POST", "OPTIONS"],
+        "origins": ["http://209.38.41.138","http://127.0.0.1"],
+        "methods": ["GET", "POST", "OPTIONS","PUT"],
         "allow_headers": ["Content-Type"]
     }
 })
