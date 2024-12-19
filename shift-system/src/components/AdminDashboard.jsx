@@ -13,7 +13,7 @@ const AdminDashboard = () => {
   });
 
   const shifts = [
-    { name: 'Morning', color: 'bg-amber-100' },
+    { name: 'Morning', color: 'bg-blue-100' },
     { name: 'Evening', color: 'bg-orange-100' },
     { name: 'Night', color: 'bg-purple-100' }
   ];
