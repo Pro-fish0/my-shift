@@ -11,7 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
-ignor
+ignor/
 
 # Editor directories and files
 .ignor/*
