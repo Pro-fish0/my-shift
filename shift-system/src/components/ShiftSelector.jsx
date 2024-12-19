@@ -98,64 +98,101 @@ const ShiftSelector = ({ employeeId }) => {
   }, [month, year]);
 
   // Event handlers
-  const handleShiftClick = (day, shiftType) => {
+  const handleShiftClick = async (day, shiftType) => {
     if (hasSchedule || !hasAvailability(day, shiftType)) return;
-
+  
     const isSelected = selectedShifts.some(
       s => s.day === day && s.shift_type === shiftType
     );
-
+  
+    const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  
     if (isSelected) {
-      setSelectedShifts(shifts => 
-        shifts.filter(s => !(s.day === day && s.shift_type === shiftType))
-      );
+      try {
+        // When deselecting, increase available capacity by 1
+        await updateShiftCapacity(date, shiftType, 1);
+        
+        setSelectedShifts(shifts => 
+          shifts.filter(s => !(s.day === day && s.shift_type === shiftType))
+        );
+        
+        // Update local capacity state
+        const key = `${day}_${shiftType}`;
+        setCapacities(prev => ({
+          ...prev,
+          [key]: {
+            ...prev[key],
+            available: prev[key].available + 1
+          }
+        }));
+      } catch (err) {
+        alert('Failed to update shift capacity. Please try again.');
+        return;
+      }
       return;
     }
-
-    // Check if day already has a shift
+  
+    // All existing checks
     if (selectedShifts.some(s => s.day === day)) return;
-
-    // Check shift type limit
+  
     if (getShiftTypeCount(shiftType) >= 7) {
       alert(`Cannot select more than 7 ${shiftType} shifts`);
       return;
     }
-
-    // Check total shifts limit
+  
     if (selectedShifts.length >= 20) {
       alert('Cannot select more than 20 shifts');
       return;
     }
-
-    // Check consecutive days
+  
     const newShifts = [...selectedShifts, { day, shift_type: shiftType }];
     if (getConsecutiveDays(newShifts) > 9) {
       alert('Cannot select more than 9 consecutive days');
       return;
     }
-
-    setSelectedShifts(newShifts);
+  
+    try {
+      // When selecting, decrease available capacity by 1
+      await updateShiftCapacity(date, shiftType, -1);
+      
+      setSelectedShifts(newShifts);
+      
+      // Update local capacity state
+      const key = `${day}_${shiftType}`;
+      setCapacities(prev => ({
+        ...prev,
+        [key]: {
+          ...prev[key],
+          available: prev[key].available - 1
+        }
+      }));
+    } catch (err) {
+      alert('Failed to update shift capacity. Please try again.');
+    }
   };
-
+  
   const handleSubmit = async () => {
     if (selectedShifts.length !== 20) {
       alert('Please select exactly 20 shifts');
       return;
     }
-
+  
     try {
       const formattedShifts = selectedShifts.map(shift => ({
         date: `${year}-${String(month).padStart(2, '0')}-${String(shift.day).padStart(2, '0')}`,
         shift_type: shift.shift_type
       }));
-
+  
       await submitShiftSelections(employeeId, formattedShifts);
+      
+      // No need to update capacities here since they're already updated during selection
       alert('Shifts submitted successfully!');
       setSelectedShifts([]);
-      await fetchCapacities();
+      await fetchCapacities(); // Refresh just to ensure consistency
       await fetchEmployeeShifts();
     } catch (err) {
       alert(err.message || 'Failed to submit shifts. Please try again.');
+      // Optionally, you could add capacity rollback here if submission fails
     }
   };
 

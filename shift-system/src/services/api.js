@@ -93,3 +93,22 @@ export const exportSchedule = async (month, year) => {
     return response.blob();
 };
 
+export const updateShiftCapacity = async (date, shiftType, change) => {
+    const response = await fetch('/api/shift-capacity/update', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        date,
+        shiftType,
+        change // +1 when removing selection, -1 when adding selection
+      }),
+    });
+  
+    if (!response.ok) {
+      throw new Error('Failed to update shift capacity');
+    }
+  
+    return await response.json();
+  };
