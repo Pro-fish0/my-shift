@@ -16,7 +16,7 @@ app = Flask(__name__)
 CORS(app, resources={
     r"/api/*": {
         "origins": ["http://209.38.41.138","http://127.0.0.1"],
-        "methods": ["GET", "POST", "OPTIONS","PUT"],
+        "methods": ["GET", "POST", "OPTIONS", "PUT"],
         "allow_headers": ["Content-Type"]
     }
 })
@@ -362,6 +362,48 @@ def export_schedule():
     except Exception as e:
         print(f"Error exporting schedule: {str(e)}")
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/shifts/capacity/update', methods=['PUT'])
+def update_shift_capacity():
+    try:
+        data = request.json
+        print("Received capacity update data:", data)  # Debug log
+        
+        date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+        shift_type = data['shift_type']
+        change = data['change']
+
+        # Get the capacity record
+        capacity = ShiftCapacity.query.filter_by(
+            date=date,
+            shift_type=shift_type
+        ).first()
+
+        if not capacity:
+            return jsonify({'error': 'Capacity record not found'}), 404
+
+        # Get current number of selections
+        selections = ShiftSelection.query.filter_by(
+            date=date,
+            shift_type=shift_type,
+            status='approved'
+        ).count()
+
+        # Calculate new selections count
+        new_selections = selections + (change * -1)  # Negative change means adding a selection
+
+        if new_selections < 0 or new_selections > capacity.capacity:
+            return jsonify({'error': 'Invalid capacity change'}), 400
+
+        # Return updated capacity info
+        return jsonify({
+            'success': True,
+            'available': capacity.capacity - new_selections
+        })
+
+    except Exception as e:
+        print(f"Error updating capacity: {str(e)}")
+        return jsonify({'error': str(e)}), 400
     
 # Initialize database
 def init_db():

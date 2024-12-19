@@ -94,22 +94,30 @@ export const exportSchedule = async (month, year) => {
 };
 
 export const updateShiftCapacity = async (date, shiftType, change) => {
-    const response = await fetch(`${API_URL}/shifts/capacity/update`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            date,
-            shift_type: shiftType,
-            change
-        }),
-    });
+    try {
+        console.log('Updating capacity:', { date, shiftType, change }); // Debug log
+        
+        const response = await fetch(`${API_URL}/shifts/capacity/update`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                date,
+                shift_type: shiftType, // Make sure to use shift_type, not shiftType
+                change
+            }),
+        });
 
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update shift capacity');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update shift capacity');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error in updateShiftCapacity:', error);
+        throw error;
     }
-
-    return await response.json();
 };
