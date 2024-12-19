@@ -13,13 +13,15 @@ from flask import make_response  # Add this import
 # CORS(app)
 
 app = Flask(__name__)
-CORS(app, resources={
-    r"/api/*": {
-        "origins": ["http://209.38.41.138"],
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
-    }
-})
+CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+# CORS(app, resources={
+#     r"/api/*": {
+#         "origins": ["http://209.38.41.138"],
+#         "methods": ["GET", "POST", "OPTIONS"],
+#         "allow_headers": ["Content-Type"]
+#     }
+# })
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shifts.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -367,8 +369,8 @@ def export_schedule():
 def init_db():
     with app.app_context():
         # Drop and recreate all tables
-        #db.drop_all()
-        #db.create_all()
+        db.drop_all()
+        db.create_all()
         
         # Add sample data if database is empty
         if not Employee.query.first(): 
