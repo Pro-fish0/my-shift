@@ -24,3 +24,4 @@ ignor/
 *.njsproj
 *.sln
 *.sw?
+ignor/
