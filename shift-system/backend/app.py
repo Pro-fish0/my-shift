@@ -36,10 +36,15 @@ class Employee(db.Model):
     shifts = db.relationship('ShiftSelection', backref='employee_rel', lazy=True)
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        print(f"Setting password for {self.employee_id}")  # Debug log
+        self.password_hash = generate_password_hash(password, method='sha256')
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        print(f"Checking password for {self.employee_id}")  # Debug log
+        print(f"Stored hash: {self.password_hash}")  # Debug log
+        result = check_password_hash(self.password_hash, password)
+        print(f"Password check result: {result}")  # Debug log
+        return result
 
 class ShiftCapacity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -89,6 +94,8 @@ users = load_users()
 def login():
     data = request.json
     print(f"Login attempt for employee ID: {data.get('employeeId')}")  # Debug log
+    print(f"Received password: {data.get('password')}")  # Debug log
+    
     employee = Employee.query.filter_by(employee_id=data.get('employeeId')).first()
     
     if employee:
@@ -470,43 +477,50 @@ def sync_users():
 
 def init_db():
     with app.app_context():
-        # Create tables if they don't exist
+        # Drop all tables and recreate them
+        db.drop_all()
         db.create_all()
         
+        print("Database tables reset")  # Debug log
+        
         # Sync users
-        if not Employee.query.first():
-            print("Populating database with initial user data...")  # Debug log
-            for user in users:
-                employee = Employee(
-                    employee_id=user['employeeId'],
-                    name=user['name'],
-                    role=user['role'],
-                    is_priority=user['isPriority']
-                )
-                employee.set_password(user['password'])
-                db.session.add(employee)
-            
-            db.session.commit()
-            print("Database populated with initial user data.")  # Debug log
+        print("Starting user sync...")  # Debug log
+        for user in users:
+            print(f"Processing user: {user['employeeId']}")  # Debug log
+            employee = Employee(
+                employee_id=user['employeeId'],
+                name=user['name'],
+                role=user['role'],
+                is_priority=user['isPriority']
+            )
+            employee.set_password(user['password'])
+            db.session.add(employee)
+        
+        db.session.commit()
+        print("Users synchronized")  # Debug log
 
-            # Create sample shift capacities for the next month
-            next_month = datetime.now().replace(day=1) + timedelta(days=32)
-            next_month = next_month.replace(day=1)
-            
-            for day in range(1, 32):
-                try:
-                    date = next_month.replace(day=day)
-                    shifts = [
-                        ShiftCapacity(date=date, shift_type='Morning', capacity=12),
-                        ShiftCapacity(date=date, shift_type='Evening', capacity=15),
-                        ShiftCapacity(date=date, shift_type='Night', capacity=12)
-                    ]
-                    db.session.add_all(shifts)
-                except ValueError:
-                    pass
-            
-            db.session.commit()
-            print("Database populated with initial shift capacities.")  # Debug log
+        # Verify users were added
+        user_count = Employee.query.count()
+        print(f"Total users in database: {user_count}")  # Debug log
+        
+        # Create sample shift capacities for the next month
+        next_month = datetime.now().replace(day=1) + timedelta(days=32)
+        next_month = next_month.replace(day=1)
+        
+        for day in range(1, 32):
+            try:
+                date = next_month.replace(day=day)
+                shifts = [
+                    ShiftCapacity(date=date, shift_type='Morning', capacity=12),
+                    ShiftCapacity(date=date, shift_type='Evening', capacity=15),
+                    ShiftCapacity(date=date, shift_type='Night', capacity=12)
+                ]
+                db.session.add_all(shifts)
+            except ValueError:
+                pass
+        
+        db.session.commit()
+        print("Database populated with initial shift capacities.")  # Debug log
 
 
 if __name__ == '__main__':

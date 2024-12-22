@@ -1,20 +1,30 @@
 const API_URL = 'http://209.38.41.138/api';  // Ensure this matches your server's address
 
 export const loginUser = async (employeeId, password) => {
-    const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ employeeId, password }),
-    });
+    console.log('Attempting login with:', { employeeId }); // Debug log (don't log password)
     
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Login failed');
+    try {
+        const response = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ employeeId, password }),
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            console.error('Login failed:', data); // Debug log
+            throw new Error(data.error || 'Login failed');
+        }
+        
+        console.log('Login successful'); // Debug log
+        return data;
+    } catch (error) {
+        console.error('Login error:', error); // Debug log
+        throw error;
     }
-    
-    return response.json();
 };
 
 export const getShiftCapacities = async (date) => {
