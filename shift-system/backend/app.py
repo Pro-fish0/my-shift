@@ -475,6 +475,7 @@ def init_db():
         
         # Sync users
         if not Employee.query.first():
+            print("Populating database with initial user data...")  # Debug log
             for user in users:
                 employee = Employee(
                     employee_id=user['employeeId'],
@@ -486,6 +487,7 @@ def init_db():
                 db.session.add(employee)
             
             db.session.commit()
+            print("Database populated with initial user data.")  # Debug log
 
             # Create sample shift capacities for the next month
             next_month = datetime.now().replace(day=1) + timedelta(days=32)
@@ -504,6 +506,7 @@ def init_db():
                     pass
             
             db.session.commit()
+            print("Database populated with initial shift capacities.")  # Debug log
 
 
 if __name__ == '__main__':
