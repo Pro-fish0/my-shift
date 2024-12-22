@@ -29,7 +29,7 @@ db = SQLAlchemy(app)
 class Employee(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     employee_id = db.Column(db.String(10), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
+    password = db.Column(db.String(256), nullable=False)  # Changed from password_hash
     name = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(20), default='employee')
     is_priority = db.Column(db.Boolean, default=False)
@@ -37,14 +37,13 @@ class Employee(db.Model):
 
     def set_password(self, password):
         print(f"Setting password for {self.employee_id}")  # Debug log
-        self.password_hash = generate_password_hash(password, method='sha256')
+        self.password = password  # Store password directly
 
     def check_password(self, password):
         print(f"Checking password for {self.employee_id}")  # Debug log
-        print(f"Stored hash: {self.password_hash}")  # Debug log
-        result = check_password_hash(self.password_hash, password)
-        print(f"Password check result: {result}")  # Debug log
-        return result
+        print(f"Stored password: {self.password}")  # Debug log
+        print(f"Provided password: {password}")  # Debug log
+        return self.password == password  # Direct comparison
 
 class ShiftCapacity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -489,11 +488,11 @@ def init_db():
             print(f"Processing user: {user['employeeId']}")  # Debug log
             employee = Employee(
                 employee_id=user['employeeId'],
+                password=user['password'],  # Store password directly
                 name=user['name'],
                 role=user['role'],
                 is_priority=user['isPriority']
             )
-            employee.set_password(user['password'])
             db.session.add(employee)
         
         db.session.commit()
