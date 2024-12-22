@@ -14,7 +14,6 @@ const Login = ({ onLogin }) => {
 
     try {
       console.log(`Attempting login for employee ID: ${employeeId}`);  // Debug log
-      console.log(`API URL: ${API_URL}`);  // Debug log
       const { user } = await loginUser(employeeId, password);
       localStorage.setItem('user', JSON.stringify(user));
       onLogin(user);

@@ -496,7 +496,7 @@ def init_db():
                     date = next_month.replace(day=day)
                     shifts = [
                         ShiftCapacity(date=date, shift_type='Morning', capacity=12),
-                        ShiftCapacity(date=date, shift_type='Evening', capacity=14),
+                        ShiftCapacity(date=date, shift_type='Evening', capacity=15),
                         ShiftCapacity(date=date, shift_type='Night', capacity=12)
                     ]
                     db.session.add_all(shifts)
@@ -508,4 +508,4 @@ def init_db():
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True, host='0.0.0.0', port=5000)  # Ensure the server is running on the correct host and port
+    app.run(debug=True, port=5000)  # Ensure the server is running on the correct host and port
