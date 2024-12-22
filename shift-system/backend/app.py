@@ -88,17 +88,25 @@ users = load_users()
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.json
+    print(f"Login attempt for employee ID: {data.get('employeeId')}")  # Debug log
     employee = Employee.query.filter_by(employee_id=data.get('employeeId')).first()
     
-    if employee and employee.check_password(data.get('password')):
-        return jsonify({
-            'user': {
-                'employeeId': employee.employee_id,
-                'name': employee.name,
-                'role': employee.role,
-                'isPriority': employee.is_priority
-            }
-        })
+    if employee:
+        print(f"Employee found: {employee.name}")  # Debug log
+        if employee.check_password(data.get('password')):
+            print("Password check passed")  # Debug log
+            return jsonify({
+                'user': {
+                    'employeeId': employee.employee_id,
+                    'name': employee.name,
+                    'role': employee.role,
+                    'isPriority': employee.is_priority
+                }
+            })
+        else:
+            print("Password check failed")  # Debug log
+    else:
+        print("Employee not found")  # Debug log
     
     return jsonify({'error': 'Invalid credentials'}), 401
 

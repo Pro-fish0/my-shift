@@ -13,10 +13,12 @@ const Login = ({ onLogin }) => {
     setIsLoading(true);
 
     try {
+      console.log(`Attempting login for employee ID: ${employeeId}`);  // Debug log
       const { user } = await loginUser(employeeId, password);
       localStorage.setItem('user', JSON.stringify(user));
       onLogin(user);
     } catch (err) {
+      console.error('Login error:', err);  // Debug log
       setError('Invalid employee ID or password');
     } finally {
       setIsLoading(false);
