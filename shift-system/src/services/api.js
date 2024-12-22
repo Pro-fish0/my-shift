@@ -1,4 +1,4 @@
-const API_URL = 'http://127.0.0.1:5000/api';  // Ensure this matches your server's address
+const API_URL = 'http://209.38.41.138/api';  // Ensure this matches your server's address
 
 export const loginUser = async (employeeId, password) => {
     const response = await fetch(`${API_URL}/auth/login`, {
