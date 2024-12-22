@@ -476,50 +476,43 @@ def sync_users():
 
 def init_db():
     with app.app_context():
-        # Drop all tables and recreate them
-        db.drop_all()
         db.create_all()
         
-        print("Database tables reset")  # Debug log
-        
-        # Sync users
-        print("Starting user sync...")  # Debug log
-        for user in users:
-            print(f"Processing user: {user['employeeId']}")  # Debug log
-            employee = Employee(
-                employee_id=user['employeeId'],
-                password=user['password'],  # Store password directly
-                name=user['name'],
-                role=user['role'],
-                is_priority=user['isPriority']
-            )
-            db.session.add(employee)
-        
-        db.session.commit()
-        print("Users synchronized")  # Debug log
-
-        # Verify users were added
-        user_count = Employee.query.count()
-        print(f"Total users in database: {user_count}")  # Debug log
-        
-        # Create sample shift capacities for the next month
-        next_month = datetime.now().replace(day=1) + timedelta(days=32)
-        next_month = next_month.replace(day=1)
-        
-        for day in range(1, 32):
-            try:
-                date = next_month.replace(day=day)
-                shifts = [
-                    ShiftCapacity(date=date, shift_type='Morning', capacity=12),
-                    ShiftCapacity(date=date, shift_type='Evening', capacity=15),
-                    ShiftCapacity(date=date, shift_type='Night', capacity=12)
-                ]
-                db.session.add_all(shifts)
-            except ValueError:
-                pass
-        
-        db.session.commit()
-        print("Database populated with initial shift capacities.")  # Debug log
+        # Check if initialization is done
+        if Employee.query.first() is None:  # Simple check if any users exist
+            print("Starting database initialization...")
+            
+            # Add users
+            for user in users:
+                employee = Employee(
+                    employee_id=user['employeeId'],
+                    password=user['password'],
+                    name=user['name'],
+                    role=user['role'],
+                    is_priority=user['isPriority']
+                )
+                db.session.add(employee)
+            
+            # Add shift capacities
+            next_month = datetime.now().replace(day=1) + timedelta(days=32)
+            next_month = next_month.replace(day=1)
+            
+            for day in range(1, 32):
+                try:
+                    date = next_month.replace(day=day)
+                    shifts = [
+                        ShiftCapacity(date=date, shift_type='Morning', capacity=12),
+                        ShiftCapacity(date=date, shift_type='Evening', capacity=15),
+                        ShiftCapacity(date=date, shift_type='Night', capacity=12)
+                    ]
+                    db.session.add_all(shifts)
+                except ValueError:
+                    pass
+            
+            db.session.commit()
+            print("Database initialized successfully")
+        else:
+            print("Database already initialized, skipping...")
 
 
 if __name__ == '__main__':
