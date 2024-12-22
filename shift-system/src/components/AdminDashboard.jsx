@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getShiftCapacities, setShiftCapacity,exportSchedule } from '../services/api';
+import { getShiftCapacities, setShiftCapacity, exportSchedule, syncUsers } from '../services/api';
 
 const AdminDashboard = () => {
   const [capacities, setCapacities] = useState({});
@@ -51,9 +51,9 @@ const AdminDashboard = () => {
     }
     const capacity = capacities[key];
     if (capacity) {
-        return `${capacity.available}/${capacity.total}`;  // Show available/total format
+        return capacity.available;  // Return only available value for input field
     }
-    return '0/0';
+    return 0;
 };
 
   const handleCapacityChange = (day, shiftType, value) => {
@@ -106,6 +106,15 @@ const AdminDashboard = () => {
     } catch (error) {
         console.error('Export error:', error);
         alert('Failed to export schedule');
+    }
+  };
+
+  const handleSyncUsers = async () => {
+    try {
+      await syncUsers();
+      alert('Users synchronized successfully');
+    } catch (error) {
+      alert('Failed to sync users: ' + error.message);
     }
   };
 
@@ -186,6 +195,12 @@ const AdminDashboard = () => {
         >
             Export Schedule (CSV)
         </button>
+            <button
+              onClick={handleSyncUsers}
+              className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+            >
+              Sync Users
+            </button>
           </div>
         </div>
 
@@ -223,7 +238,7 @@ const AdminDashboard = () => {
                       <input
                           type="number"
                           min="0"
-                          value={getCapacity(day, shift.name).split('/')[0]}
+                          value={getCapacity(day, shift.name)}
                           onChange={(e) => handleCapacityChange(day, shift.name, e.target.value)}
                           className="absolute inset-0 w-full h-full bg-transparent 
                                    text-center focus:outline-none focus:ring-2 

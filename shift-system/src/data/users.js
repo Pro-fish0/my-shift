@@ -1,5 +1,19 @@
 export const users = [
     {
+        employeeId: 'Admin',
+        password: 'Mm@997997',
+        name: 'admin',
+        role: 'admin',
+        isPriority: false
+    },
+    {
+        employeeId: '2',
+        password: '2',
+        name: '2',
+        role: 'employee',
+        isPriority: false
+    },
+    {
         employeeId: '1',
         password: '1',
         name: '1',
@@ -451,6 +465,13 @@ export const users = [
         employeeId: '997',
         password: 't997',
         name: 't997',
+        role: 'employee',
+        isPriority: false
+    },
+    {
+        employeeId: '3',
+        password: '3',
+        name: '3',
         role: 'employee',
         isPriority: false
     },

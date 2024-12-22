@@ -69,7 +69,7 @@ const ShiftSelector = ({ employeeId }) => {
       const date = `${year}-${String(month).padStart(2, '0')}-01`;
       const data = await getEmployeeShifts(employeeId, date);
       setEmployeeShifts(data);
-      setHasSchedule(data.length === 20);
+      setHasSchedule(data.length === 19);
     } catch (err) {
       console.error('Error fetching schedule:', err);
     }
@@ -120,8 +120,8 @@ const ShiftSelector = ({ employeeId }) => {
       return;
     }
   
-    if (selectedShifts.length >= 20) {
-      alert('Cannot select more than 20 shifts');
+    if (selectedShifts.length >= 19) {
+      alert('Cannot select more than 19 shifts');
       return;
     }
   
@@ -135,8 +135,8 @@ const ShiftSelector = ({ employeeId }) => {
   };
   
   const handleSubmit = async () => {
-    if (selectedShifts.length !== 20) {
-      alert('Please select exactly 20 shifts');
+    if (selectedShifts.length !== 19) {
+      alert('Please select exactly 19 shifts');
       return;
     }
   
@@ -195,7 +195,7 @@ const ShiftSelector = ({ employeeId }) => {
 
           {!hasSchedule && (
             <div className="mt-4 text-sm text-gray-600">
-              Select your preferred shifts for next month. You must select exactly 20 shifts,
+              Select your preferred shifts for next month. You must select exactly 19 shifts,
               with a maximum of 7 shifts per shift type and no more than 9 consecutive days.
             </div>
           )}
@@ -204,22 +204,22 @@ const ShiftSelector = ({ employeeId }) => {
         {/* Enhanced Status Cards */}
         {!hasSchedule && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 border-b border-gray-200">
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+            <div className="bg-green-50 rounded-xl p-4 border border-green-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-medium text-blue-600">Total Selected</div>
-                  <div className="mt-1 text-2xl font-bold text-blue-700">
-                    {selectedShifts.length}/20
+                  <div className="text-sm font-medium text-green-600">Total Selected</div>
+                  <div className="mt-1 text-2xl font-bold text-green-700">
+                    {selectedShifts.length}/19
                   </div>
                 </div>
-                {selectedShifts.length === 20 ? (
-                  <CheckCircle className="h-8 w-8 text-blue-500" />
+                {selectedShifts.length === 19 ? (
+                  <CheckCircle className="h-8 w-8 text-green-500" />
                 ) : (
-                  <AlertCircle className="h-8 w-8 text-blue-400" />
+                  <AlertCircle className="h-8 w-8 text-green-400" />
                 )}
               </div>
-              <div className="mt-1 text-xs text-blue-600">
-                {20 - selectedShifts.length} shifts remaining
+              <div className="mt-1 text-xs text-green-600">
+                {19 - selectedShifts.length} shifts remaining
               </div>
             </div>
 
@@ -374,7 +374,7 @@ const ShiftSelector = ({ employeeId }) => {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={selectedShifts.length !== 20}
+            disabled={selectedShifts.length !== 19}
             className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
                      transition-colors disabled:bg-gray-300 disabled:hover:bg-gray-300 
                      disabled:cursor-not-allowed font-medium flex items-center gap-2"

@@ -1,4 +1,4 @@
-const API_URL = 'http://209.38.41.138/api';
+const API_URL = 'http://127.0.0.1:5000/api';
 
 export const loginUser = async (employeeId, password) => {
     const response = await fetch(`${API_URL}/auth/login`, {
@@ -10,7 +10,8 @@ export const loginUser = async (employeeId, password) => {
     });
     
     if (!response.ok) {
-        throw new Error('Login failed');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Login failed');
     }
     
     return response.json();
@@ -120,4 +121,20 @@ export const updateShiftCapacity = async (date, shiftType, change) => {
         console.error('Error in updateShiftCapacity:', error);
         throw error;
     }
+};
+
+export const syncUsers = async () => {
+    const response = await fetch(`${API_URL}/admin/sync-users`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to sync users');
+    }
+    
+    return response.json();
 };
