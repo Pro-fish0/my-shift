@@ -8,8 +8,8 @@ const AdminDashboard = () => {
   const [unsavedChanges, setUnsavedChanges] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [selectedDate, setSelectedDate] = useState({
-    month: 1,
-    year: 2025
+    month: new Date().getMonth() + 2 > 12 ? 1 : new Date().getMonth() + 2,
+    year: new Date().getMonth() + 2 > 12 ? new Date().getFullYear() + 1 : new Date().getFullYear()
   });
 
   const shifts = [
@@ -23,18 +23,12 @@ const AdminDashboard = () => {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  const years = Array.from({ length: 10 }, (_, i) => 2025 + i);
-
-  const daysInMonth = new Date(
-    selectedDate.year,
-    selectedDate.month,
-    0
-  ).getDate();
+  const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i);
+  const daysInMonth = new Date(selectedDate.year, selectedDate.month, 0).getDate();
 
   useEffect(() => {
     fetchCapacities();
   }, [selectedDate]);
-
 
   const handleDateChange = (type, value) => {
     setSelectedDate(prev => ({
@@ -44,68 +38,89 @@ const AdminDashboard = () => {
     setUnsavedChanges({});
   };
 
-  const getCapacity = (day, shiftType) => {
+  // Get the total capacity (including any unsaved changes)
+  const getTotalCapacity = (day, shiftType) => {
     const key = `${day}_${shiftType}`;
     if (unsavedChanges[key]) {
-        return unsavedChanges[key].value;
+      return unsavedChanges[key].value;
     }
-    const capacity = capacities[key];
-    if (capacity) {
-        return capacity.available;  // Return only available value for input field
-    }
-    return 0;
-};
-
-  const handleCapacityChange = (day, shiftType, value) => {
-      const key = `${day}_${shiftType}`;
-      setUnsavedChanges(prev => ({
-          ...prev,
-          [key]: {
-              day,
-              shiftType,
-              value: value === '' ? '' : parseInt(value)
-          }
-      }));
+    return capacities[key]?.total || 0;
   };
 
+  // Get the number of taken slots
+  const getTakenSlots = (day, shiftType) => {
+    const key = `${day}_${shiftType}`;
+    const capacity = capacities[key];
+    return capacity ? (capacity.total - capacity.available) : 0;
+  };
+
+  const handleCapacityChange = (day, shiftType, value) => {
+    const numericValue = value === '' ? 0 : Math.max(0, parseInt(value) || 0);
+    const takenSlots = getTakenSlots(day, shiftType);
+    
+    // Prevent setting capacity below number of taken slots
+    if (numericValue < takenSlots) {
+      alert(`Cannot set capacity below ${takenSlots} (number of slots already taken)`);
+      return;
+    }
+
+    const key = `${day}_${shiftType}`;
+    setUnsavedChanges(prev => ({
+      ...prev,
+      [key]: {
+        day,
+        shiftType,
+        value: numericValue
+      }
+    }));
+  };
 
   const handleSubmit = async () => {
     setIsSaving(true);
     try {
-        const promises = Object.values(unsavedChanges).map(change => {
-            // Create date for the selected month/year
-            const date = `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-${String(change.day).padStart(2, '0')}`;
-            console.log('Submitting capacity for date:', date);  // Debug log
-            
-            return setShiftCapacity(date, change.shiftType, parseInt(change.value));
-        });
+      const promises = Object.values(unsavedChanges).map(change => {
+        const date = `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-${String(change.day).padStart(2, '0')}`;
+        return setShiftCapacity(date, change.shiftType, change.value);
+      });
 
-        await Promise.all(promises);
-        await fetchCapacities();  // Refetch after saving
-        setUnsavedChanges({});
-        alert('Capacities updated successfully!');
+      await Promise.all(promises);
+      await fetchCapacities();
+      setUnsavedChanges({});
+      alert('Capacities updated successfully!');
     } catch (err) {
-        console.error('Error details:', err);
-        alert('Failed to update capacities: ' + (err.message || 'Unknown error'));
+      console.error('Error details:', err);
+      alert('Failed to update capacities: ' + (err.message || 'Unknown error'));
     } finally {
-        setIsSaving(false);
+      setIsSaving(false);
     }
-  
-};
+  };
+
+  const fetchCapacities = async () => {
+    try {
+      const date = `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-01`;
+      const data = await getShiftCapacities(date);
+      setCapacities(data);
+    } catch (err) {
+      setError('Failed to load shift capacities');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleExport = async () => {
     try {
-        const blob = await exportSchedule(selectedDate.month, selectedDate.year);
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `schedule_${selectedDate.year}_${selectedDate.month}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+      const blob = await exportSchedule(selectedDate.month, selectedDate.year);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `schedule_${selectedDate.year}_${selectedDate.month}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-        console.error('Export error:', error);
-        alert('Failed to export schedule');
+      console.error('Export error:', error);
+      alert('Failed to export schedule');
     }
   };
 
@@ -118,27 +133,8 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchCapacities = async () => {
-      try {
-          // Create date string for first day of selected month
-          const date = `${selectedDate.year}-${String(selectedDate.month).padStart(2, '0')}-01`;
-          console.log('Fetching capacities for:', date);  // Debug log
-          
-          const data = await getShiftCapacities(date);
-          setCapacities(data);
-      } catch (err) {
-          setError('Failed to load shift capacities');
-      } finally {
-          setIsLoading(false);
-      }
-  };
-  if (isLoading) {
-    return <div className="text-center p-4">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center p-4 text-red-600">{error}</div>;
-  }
+  if (isLoading) return <div className="text-center p-4">Loading...</div>;
+  if (error) return <div className="text-center p-4 text-red-600">{error}</div>;
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -154,9 +150,7 @@ const AdminDashboard = () => {
                 className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {months.map((month, index) => (
-                  <option key={month} value={index + 1}>
-                    {month}
-                  </option>
+                  <option key={month} value={index + 1}>{month}</option>
                 ))}
               </select>
 
@@ -166,9 +160,7 @@ const AdminDashboard = () => {
                 className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {years.map(year => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
+                  <option key={year} value={year}>{year}</option>
                 ))}
               </select>
             </div>
@@ -190,11 +182,11 @@ const AdminDashboard = () => {
               {isSaving ? 'Saving...' : 'Save All Changes'}
             </button>
             <button
-            onClick={handleExport}
-            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-        >
-            Export Schedule (CSV)
-        </button>
+              onClick={handleExport}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+            >
+              Export Schedule (CSV)
+            </button>
             <button
               onClick={handleSyncUsers}
               className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
@@ -206,9 +198,7 @@ const AdminDashboard = () => {
 
         <div className="grid grid-cols-7 gap-2">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="text-center font-semibold py-2">
-              {day}
-            </div>
+            <div key={day} className="text-center font-semibold py-2">{day}</div>
           ))}
           
           {[...Array(new Date(selectedDate.year, selectedDate.month - 1, 1).getDay())].map((_, i) => (
@@ -226,31 +216,34 @@ const AdminDashboard = () => {
                   {shifts.map(shift => {
                     const key = `${day}_${shift.name}`;
                     const hasChanges = unsavedChanges[key];
+                    const totalCapacity = getTotalCapacity(day, shift.name);
+                    const takenSlots = getTakenSlots(day, shift.name);
+                    const availableSlots = totalCapacity - takenSlots;
                     
                     return (
                       <div
-                      key={`${day}-${shift.name}`}
-                      className={`
+                        key={`${day}-${shift.name}`}
+                        className={`
                           flex-1 relative ${shift.color}
                           ${hasChanges ? 'ring-2 ring-blue-400 ring-inset' : ''}
-                      `}
-                  >
-                      <input
+                        `}
+                      >
+                        <input
                           type="number"
-                          min="0"
-                          value={getCapacity(day, shift.name)}
+                          min={takenSlots}
+                          value={totalCapacity}
                           onChange={(e) => handleCapacityChange(day, shift.name, e.target.value)}
                           className="absolute inset-0 w-full h-full bg-transparent 
                                    text-center focus:outline-none focus:ring-2 
                                    focus:ring-blue-500 ring-inset"
-                      />
-                      <div className="absolute bottom-0 right-1 text-xs text-gray-500">
-                          Total: {capacities[`${day}_${shift.name}`]?.total || 0}
+                        />
+                        <div className="absolute top-0 right-1 text-xs text-gray-500">
+                          Used: {takenSlots}
+                        </div>
+                        <div className="absolute bottom-0 right-1 text-xs text-gray-500">
+                          Free: {availableSlots}
+                        </div>
                       </div>
-                      <div className="absolute top-0 right-1 text-xs text-gray-500">
-                          Available: {capacities[`${day}_${shift.name}`]?.available || 0}
-                      </div>
-                  </div>
                     );
                   })}
                 </div>

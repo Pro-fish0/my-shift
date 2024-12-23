@@ -5,7 +5,7 @@ import AdminDashboard from './components/AdminDashboard';
 
 function App() {
   const [user, setUser] = React.useState(null);
-
+  document.title = "EMD shift management system";
   React.useEffect(() => {
     const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
