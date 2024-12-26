@@ -1,4 +1,4 @@
-const API_URL = 'http://209.38.41.138/api';  // Ensure this matches your server's address
+const API_URL = 'http://127.0.0.1:5000/api';
 
 export const loginUser = async (employeeId, password) => {
     console.log('Attempting login with:', { employeeId }); // Debug log (don't log password)
@@ -147,4 +147,133 @@ export const syncUsers = async () => {
     }
     
     return response.json();
+};
+
+export const resetSchedule = async (employeeId, month, year) => {
+    try {
+        const response = await fetch(
+            `${API_URL}/schedule/reset/${employeeId}?month=${month}&year=${year}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }
+        );
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to reset schedule and vacation days');
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error('Error resetting schedule and vacation:', error);
+        throw error;
+    }
+};
+export const getUsers = async () => {
+    try {
+        const response = await fetch(`${API_URL}/admin/users`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to fetch users');
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+    }
+};
+
+export const updateUser = async (employeeId, updates) => {
+    try {
+        const response = await fetch(`${API_URL}/admin/users/${employeeId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updates)
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to update user');
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error('Error updating user:', error);
+        throw error;
+    }
+};
+
+export const resetUserSchedule = async (employeeId, month, year) => {
+    try {
+        const response = await fetch(`${API_URL}/admin/users/${employeeId}/reset`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ month, year })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to reset user schedule');
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error('Error resetting user schedule:', error);
+        throw error;
+    }
+};
+// Add to api.js
+
+export const requestVacation = async (employeeId, dates) => {
+    try {
+        const response = await fetch(`${API_URL}/vacation/request`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ employeeId, dates })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to request vacation');
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error('Error requesting vacation:', error);
+        throw error;
+    }
+};
+
+export const getVacationDates = async (employeeId, month, year) => {
+    try {
+        const response = await fetch(
+            `${API_URL}/vacation/${employeeId}?month=${month}&year=${year}`
+        );
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to fetch vacation dates');
+        }
+
+        return response.json();
+    } catch (error) {
+        console.error('Error fetching vacation dates:', error);
+        throw error;
+    }
 };

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import { getShiftCapacities, submitShiftSelections, getEmployeeShifts,updateShiftCapacity } from '../services/api';
+import { Calendar, Clock, CheckCircle, AlertCircle, Trash2, PalmtreeIcon } from 'lucide-react';
+import { getShiftCapacities, submitShiftSelections, getEmployeeShifts, updateShiftCapacity, resetSchedule } from '../services/api';
+import VacationSelector from './VacationSelector';
 
 const ShiftSelector = ({ employeeId }) => {
   // State declarations
@@ -10,6 +11,7 @@ const ShiftSelector = ({ employeeId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [hasSchedule, setHasSchedule] = useState(false);
+  const [showVacationModal, setShowVacationModal] = useState(false);
 
   // Constants
   const shifts = [
@@ -63,17 +65,31 @@ const ShiftSelector = ({ employeeId }) => {
     }
     return maxConsecutive;
   };
+
   // Data fetching
   const fetchEmployeeShifts = async () => {
     try {
-      const date = `${year}-${String(month).padStart(2, '0')}-01`;
-      const data = await getEmployeeShifts(employeeId, date);
-      setEmployeeShifts(data);
-      setHasSchedule(data.length === 19);
+        const date = `${year}-${String(month).padStart(2, '0')}-01`;
+        const data = await getEmployeeShifts(employeeId, date);
+        setEmployeeShifts(data);
+        
+        // Extract vacation days
+        const vacations = data.filter(item => item.type === 'vacation');
+        setVacationDays(vacations);
+
+        // Important: First check vacations, then shifts
+        if (vacations.length >= 10) {
+            setHasSchedule(true);
+            setShowShiftSelection(false);  // New state to control shift selection visibility
+        } else {
+            const shiftCount = data.filter(item => item.type === 'shift').length;
+            setHasSchedule(shiftCount === 19);
+            setShowShiftSelection(!hasSchedule && vacations.length < 10);
+        }
     } catch (err) {
-      console.error('Error fetching schedule:', err);
+        console.error('Error fetching schedule:', err);
     }
-  };
+};
 
   const fetchCapacities = async () => {
     try {
@@ -89,6 +105,46 @@ const ShiftSelector = ({ employeeId }) => {
     }
   };
 
+  const handleVacationSubmitted = async (selectedDates) => {
+    // Refresh the capacities and employee shifts after vacation is submitted
+  fetchCapacities();
+  fetchEmployeeShifts();
+    if (selectedDates.length < 10) {
+        alert('You must select at least 10 days for vacation');
+        return false;
+    }
+
+    try {
+        // Calculate remaining work hours
+        const TOTAL_REQUIRED_HOURS = 192;
+        const HOURS_PER_DAY = 8;
+        const vacationHours = selectedDates.length * HOURS_PER_DAY;
+        const remainingHours = TOTAL_REQUIRED_HOURS - vacationHours;
+
+        // Show confirmation with hours calculation
+        if (!confirm(`
+            You've selected ${selectedDates.length} vacation days (${vacationHours} hours).
+            After vacation, you won't be selecting shifts for this month.
+            Continue?
+        `)) {
+            return false;
+        }
+
+        // Refresh the data
+        await fetchCapacities();
+        await fetchEmployeeShifts();
+        return true;
+    } catch (err) {
+        console.error('Error updating after vacation:', err);
+        alert('An error occurred while processing your vacation request');
+        return false;
+    }
+  };
+
+  //Selected Shifts
+  const nextMonthData = getNextMonth();
+  const [selectedDate, setSelectedDate] = useState(nextMonthData);
+  
   useEffect(() => {
     const fetchData = async () => {
       await fetchCapacities();
@@ -112,7 +168,6 @@ const ShiftSelector = ({ employeeId }) => {
       return;
     }
   
-    // All existing checks remain the same
     if (selectedShifts.some(s => s.day === day)) return;
   
     if (getShiftTypeCount(shiftType) >= 7) {
@@ -165,6 +220,33 @@ const ShiftSelector = ({ employeeId }) => {
     }
   };
 
+
+  const handleResetSchedule = async () => {
+    if (!confirm('Are you sure you want to reset your schedule and vacation days? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const nextMonth = getNextMonth();
+      await resetSchedule(employeeId, nextMonth.month, nextMonth.year);
+      
+      setSelectedShifts([]);
+      setHasSchedule(false);
+      setVacationDays([]); // Reset vacation days state
+      setShowVacationModal(false); // Close vacation modal if open
+      await fetchCapacities();
+      await fetchEmployeeShifts();
+      
+      alert('Schedule and vacation days reset successfully');
+    } catch (error) {
+      console.error('Reset error:', error);
+      alert('Failed to reset schedule and vacation days: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="text-center p-4">Loading...</div>;
   }
@@ -185,11 +267,23 @@ const ShiftSelector = ({ employeeId }) => {
                 {hasSchedule ? 'Your Schedule' : 'Shift Selection'}
               </h1>
             </div>
-            <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-gray-500" />
-              <span className="text-lg font-medium text-gray-700">
-                {getMonthName(month)} {year}
-              </span>
+            <div className="flex items-center space-x-4">
+              {!hasSchedule && (
+                <button
+                  onClick={() => setShowVacationModal(true)}
+                  className="flex items-center px-4 py-2 text-green-700 bg-green-50 
+                           rounded-lg hover:bg-green-100 transition-colors"
+                >
+                  <PalmtreeIcon className="h-5 w-5 mr-2" />
+                  Request Vacation
+                </button>
+              )}
+              <div className="flex items-center space-x-2">
+                <Clock className="h-5 w-5 text-gray-500" />
+                <span className="text-lg font-medium text-gray-700">
+                  {getMonthName(month)} {year}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -201,7 +295,9 @@ const ShiftSelector = ({ employeeId }) => {
           )}
         </div>
 
-        {/* Enhanced Status Cards */}
+        {/* Rest of your existing component code... */}
+
+        {/* Status Cards Section */}
         {!hasSchedule && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6 border-b border-gray-200">
             <div className="bg-green-50 rounded-xl p-4 border border-green-100">
@@ -271,98 +367,126 @@ const ShiftSelector = ({ employeeId }) => {
           </div>
         )}
 
-        {/* Keep existing calendar grid and buttons */}
+        {/* Calendar Grid Section */}
         <div className="p-6">
           <div className="grid grid-cols-7 gap-2">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="text-center font-semibold py-2">
-              {day}
-            </div>
-          ))}
-          
-          {[...Array(firstDayOfMonth)].map((_, i) => (
-            <div key={`empty-${i}`} className="aspect-square"></div>
-          ))}
-
-          {[...Array(daysInMonth)].map((_, index) => {
-            const day = index + 1;
-            const employeeShiftForDay = employeeShifts.find(shift => 
-              new Date(shift.date).getDate() === day
-            );
-
-            return (
-              <div key={day} className="border rounded-lg overflow-hidden">
-                <div className="text-xs font-semibold p-1 bg-gray-50 border-b">
-                  {day}
-                </div>
-                <div className="flex flex-col h-24">
-                  {shifts.map(shift => {
-                    const isSelected = selectedShifts.some(
-                      s => s.day === day && s.shift_type === shift.name
-                    );
-                    const isAvailable = !hasSchedule && hasAvailability(day, shift.name);
-                    const hasScheduledShift = employeeShiftForDay?.shift_type === shift.name;
-                    
-                    if (hasSchedule) {
-                      // View-only mode stays the same
-                      return (
-                        <div
-                          key={`${day}-${shift.name}`}
-                          className={`
-                            flex-1 relative cursor-pointer transition-colors
-                            ${hasScheduledShift ? shift.color : 'bg-gray-50'} 
-                            ${isSelected ? 'ring-2 ring-blue-400 ring-inset' : ''}
-                            ${!isAvailable && !hasScheduledShift ? 'opacity-50 cursor-not-allowed' : ''}
-                            flex items-center justify-center
-                          `}
-                        >
-                          {hasScheduledShift && (
-                            <span className="text-sm font-medium text-gray-800">
-                              {shift.name}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    } else {
-                      // Selection mode - Updated
-                      // Selection mode - Updated
-                      return (
-                        <div
-                          key={`${day}-${shift.name}`}
-                          onClick={() => isAvailable ? handleShiftClick(day, shift.name) : null}
-                          className={`
-                            flex-1 relative cursor-pointer transition-colors
-                            ${shift.color}
-                            ${isSelected ? 'ring-2 ring-blue-400 ring-inset' : ''}
-                            ${!isAvailable ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-95'}
-                            flex items-center justify-center
-                          `}
-                        >
-                          <span className="text-sm font-medium text-gray-800">
-                            {shift.name}
-                          </span>
-                          {!isSelected && (
-                            <div 
-                              className={`
-                                absolute right-2 top-1/2 -translate-y-1/2
-                                w-3 h-3 rounded-full
-                                ${isAvailable ? 'bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.5)]' : 'bg-red-400'}
-                              `}
-                            />
-                          )}
-                        </div>
-                      );
-                    }
-                  })}
-                </div>
+              <div key={day} className="text-center font-semibold py-2">
+                {day}
               </div>
-            );
-          })}
+            ))}
+            
+            {[...Array(firstDayOfMonth)].map((_, i) => (
+              <div key={`empty-${i}`} className="aspect-square"></div>
+            ))}
+
+            {[...Array(daysInMonth)].map((_, index) => {
+                const day = index + 1;
+                const employeeShiftForDay = employeeShifts.find(shift => 
+                    new Date(shift.date).getDate() === day
+                );
+                const hasVacation = employeeShiftForDay?.shift_type === 'Vacation';
+
+                return (
+                    <div key={day} className="border rounded-lg overflow-hidden">
+                        <div className="text-xs font-semibold p-1 bg-gray-50 border-b">
+                            {day}
+                        </div>
+                        <div className="flex flex-col h-24">
+                        {hasVacation ? (
+                                // Vacation day display
+                                <div className="flex-1 bg-green-100 flex items-center justify-center">
+                                    <div className="text-sm font-medium text-green-800 flex items-center">
+                                        <PalmtreeIcon className="h-4 w-4 mr-1" />
+                                        Vacation
+                                    </div>
+                                </div>
+                            ) : employeeShifts.some(shift => shift.type === 'vacation') ? (
+                                // Gray out non-vacation days when employee has vacation
+                                <div className="flex-1 bg-gray-100 flex items-center justify-center">
+                                    <div className="text-sm text-gray-400"> </div>
+                                </div>
+                            ) : (
+                                // Regular shift display
+                                shifts.map(shift => {
+                                    const isSelected = selectedShifts.some(
+                                        s => s.day === day && s.shift_type === shift.name
+                                    );
+                                    const isAvailable = !hasSchedule && hasAvailability(day, shift.name);
+                                    const hasScheduledShift = employeeShiftForDay?.shift_type === shift.name;
+                                    
+                                    if (hasSchedule) {
+                                        return (
+                                            <div
+                                                key={`${day}-${shift.name}`}
+                                                className={`
+                                                    flex-1 relative cursor-pointer transition-colors
+                                                    ${hasScheduledShift ? shift.color : 'bg-gray-50'} 
+                                                    ${isSelected ? 'ring-2 ring-blue-400 ring-inset' : ''}
+                                                    ${!isAvailable && !hasScheduledShift ? 'opacity-50 cursor-not-allowed' : ''}
+                                                    flex items-center justify-center
+                                                `}
+                                            >
+                                                {hasScheduledShift && (
+                                                    <span className="text-sm font-medium text-gray-800">
+                                                        {shift.name}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        );
+                                    } else {
+                                        return (
+                                            <div
+                                                key={`${day}-${shift.name}`}
+                                                onClick={() => isAvailable ? handleShiftClick(day, shift.name) : null}
+                                                className={`
+                                                    flex-1 relative cursor-pointer transition-colors
+                                                    ${shift.color}
+                                                    ${isSelected ? 'ring-2 ring-blue-400 ring-inset' : ''}
+                                                    ${!isAvailable ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-95'}
+                                                    flex items-center justify-center
+                                                `}
+                                            >
+                                                <span className="text-sm font-medium text-gray-800">
+                                                    {shift.name}
+                                                </span>
+                                                {!isSelected && (
+                                                    <div 
+                                                        className={`
+                                                            absolute right-2 top-1/2 -translate-y-1/2
+                                                            w-3 h-3 rounded-full
+                                                            ${isAvailable ? 'bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.5)]' : 'bg-red-400'}
+                                                        `}
+                                                    />
+                                                )}
+                                            </div>
+                                        );
+                                    }
+                                })
+                            )}
+                        </div>
+                    </div>
+                );
+            })}
           </div>
         </div>
+
+        {/* Reset Schedule Button */}
+        {hasSchedule && (
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={handleResetSchedule}
+              className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 
+                       transition-colors font-medium flex items-center gap-2"
+            >
+              <Trash2 className="h-5 w-5" />
+              Reset Schedule
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Enhanced Action Buttons */}
+      {/* Action Buttons */}
       {!hasSchedule && (
         <div className="flex gap-4 justify-end mt-6">
           <button
@@ -383,6 +507,16 @@ const ShiftSelector = ({ employeeId }) => {
             Submit Selection
           </button>
         </div>
+      )}
+
+
+      {/* Vacation Modal */}
+      {showVacationModal && (
+        <VacationSelector
+          employeeId={employeeId}
+          onClose={() => setShowVacationModal(false)}
+          onVacationSubmitted={handleVacationSubmitted}
+        />
       )}
     </div>
   );

@@ -13,15 +13,19 @@ import re
 
 
 
-
 app = Flask(__name__)
-CORS(app, resources={
-    r"/api/*": {
-        "origins": ["http://209.38.41.138","http://127.0.0.1","http://localhost:5173"],
-        "methods": ["GET", "POST", "OPTIONS", "PUT","FETCH"],
-        "allow_headers": ["Content-Type"]
-    }
-})
+CORS(app)
+
+
+# app = Flask(__name__)
+# CORS(app, resources={
+#     r"/api/*": {
+#         "origins": ["http://127.0.0.1","http://localhost:5173"],
+#         "methods": ["GET", "POST", "OPTIONS", "PUT","FETCH"],
+#         "allow_headers": ["Content-Type"]
+#     }
+# })
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///shifts.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -66,6 +70,18 @@ class ShiftSelection(db.Model):
     __table_args__ = (
         db.UniqueConstraint('employee_id', 'date'),
     )
+
+class VacationRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    employee_id = db.Column(db.String(10), db.ForeignKey('employee.employee_id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    status = db.Column(db.String(20), default='pending')  # pending, approved, rejected
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('employee_id', 'date'),
+    )
+
 
 # Load users from users.js
 def load_users():
@@ -305,7 +321,7 @@ def select_shifts():
 @app.route('/api/shifts/employee/<employee_id>', methods=['GET'])
 def get_employee_shifts(employee_id):
     try:
-        print(f"Fetching shifts for employee {employee_id}")  # Debug log
+        print(f"Fetching shifts and vacations for employee {employee_id}")  # Debug log
         
         # Get date parameter
         date = request.args.get('date')
@@ -322,7 +338,7 @@ def get_employee_shifts(employee_id):
         else:
             last_day = datetime(first_day.year, first_day.month + 1, 1) - timedelta(days=1)
 
-        print(f"Querying shifts between {first_day} and {last_day}")  # Debug log
+        print(f"Querying between {first_day} and {last_day}")  # Debug log
 
         # Get all shifts for the employee in this month
         shifts = ShiftSelection.query.filter(
@@ -331,20 +347,48 @@ def get_employee_shifts(employee_id):
             ShiftSelection.date <= last_day.date()
         ).all()
 
-        # Format shifts for response
+        # Get all vacations for the employee in this month
+        vacations = VacationRequest.query.filter(
+            VacationRequest.employee_id == str(employee_id),
+            VacationRequest.date >= first_day.date(),
+            VacationRequest.date <= last_day.date(),
+            VacationRequest.status == 'approved'
+        ).all()
+
+        print(f"Found {len(shifts)} shifts and {len(vacations)} vacation days")  # Debug log
+
+        # Format response combining both shifts and vacations
         result = []
+        
+        # Add shifts
         for shift in shifts:
+            # Skip shifts on vacation days
+            vacation_dates = [v.date for v in vacations]
+            if shift.date not in vacation_dates:
+                result.append({
+                    'date': shift.date.isoformat(),
+                    'shift_type': shift.shift_type,
+                    'status': shift.status,
+                    'type': 'shift'
+                })
+        
+        # Add vacations
+        for vacation in vacations:
             result.append({
-                'date': shift.date.isoformat(),
-                'shift_type': shift.shift_type,
-                'status': shift.status
+                'date': vacation.date.isoformat(),
+                'shift_type': 'Vacation',
+                'status': 'approved',
+                'type': 'vacation'
             })
 
-        print(f"Found {len(result)} shifts")  # Debug log
+        # Sort by date
+        result.sort(key=lambda x: x['date'])
+        
+        print(f"Returning {len(result)} total entries")  # Debug log
         return jsonify(result)
 
     except Exception as e:
-        print(f"Error getting employee shifts: {str(e)}")  # Debug log
+        print(f"Error getting employee schedule: {str(e)}")  # Debug log
         return jsonify({'error': str(e)}), 400
 
 @app.route('/api/export/schedule', methods=['GET'])
@@ -356,39 +400,54 @@ def export_schedule():
         if not month or not year:
             return jsonify({'error': 'Month and year are required'}), 400
 
-        # Get all shifts for the month
-        shifts = ShiftSelection.query.filter(
-            ShiftSelection.date >= f"{year}-{month:02d}-01",
-            ShiftSelection.date < f"{year}-{month+1:02d}-01" if month < 12 else f"{year+1}-01-01"
-        ).order_by(ShiftSelection.employee_id, ShiftSelection.date).all()
+        # Get date range
+        start_date = f"{year}-{month:02d}-01"
+        if month == 12:
+            end_date = f"{year+1}-01-01"
+        else:
+            end_date = f"{year}-{month+1:02d}-01"
 
-        # Create CSV data
+        # Get all shifts and vacations
+        shifts = ShiftSelection.query.filter(
+            ShiftSelection.date >= start_date,
+            ShiftSelection.date < end_date
+        ).all()
+
+        vacations = VacationRequest.query.filter(
+            VacationRequest.date >= start_date,
+            VacationRequest.date < end_date,
+            VacationRequest.status == 'approved'
+        ).all()
+
+        # Create CSV header
         csv_data = "Employee_ID"
         for day in range(1, 32):
             csv_data += f",{day}"
         csv_data += "\n"
 
-        current_employee = None
-        day_shifts = []
+        # Create a dictionary to store all employee schedules
+        schedule_dict = {}
 
+        # Process shifts
         for shift in shifts:
-            if current_employee != shift.employee_id:
-                if current_employee is not None:
-                    while len(day_shifts) < 31:
-                        day_shifts.append('O')
-                    csv_data += f"{current_employee},{','.join(day_shifts)}\n"
-                current_employee = shift.employee_id
-                day_shifts = ['O'] * 31
-
+            if shift.employee_id not in schedule_dict:
+                schedule_dict[shift.employee_id] = ['O'] * 31
+            
             day_index = shift.date.day - 1
             shift_code = 'M' if shift.shift_type == 'Morning' else 'E' if shift.shift_type == 'Evening' else 'N'
-            day_shifts[day_index] = shift_code
+            schedule_dict[shift.employee_id][day_index] = shift_code
 
-        # Add last employee's data
-        if current_employee is not None:
-            while len(day_shifts) < 31:
-                day_shifts.append('O')
-            csv_data += f"{current_employee},{','.join(day_shifts)}\n"
+        # Process vacations (overwrite shifts if any)
+        for vacation in vacations:
+            if vacation.employee_id not in schedule_dict:
+                schedule_dict[vacation.employee_id] = ['O'] * 31
+            
+            day_index = vacation.date.day - 1
+            schedule_dict[vacation.employee_id][day_index] = 'V'
+
+        # Create CSV rows
+        for employee_id, schedule in schedule_dict.items():
+            csv_data += f"{employee_id},{','.join(schedule)}\n"
 
         # Create response
         response = make_response(csv_data)
@@ -472,6 +531,184 @@ def sync_users():
     except Exception as e:
         db.session.rollback()
         print(f"Error syncing users: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/shifts/reset/<employee_id>', methods=['DELETE'])
+def reset_schedule(employee_id):
+    try:
+        # Get the month/year from query parameters
+        month = request.args.get('month')
+        year = request.args.get('year')
+        
+        if not month or not year:
+            return jsonify({'error': 'Month and year are required'}), 400
+
+        # Calculate the date range for the month
+        start_date = f"{year}-{month.zfill(2)}-01"
+        if int(month) == 12:
+            end_date = f"{int(year) + 1}-01-01"
+        else:
+            end_date = f"{year}-{str(int(month) + 1).zfill(2)}-01"
+
+        # Find all shifts for this employee in the given month
+        shifts = ShiftSelection.query.filter(
+            ShiftSelection.employee_id == employee_id,
+            ShiftSelection.date >= start_date,
+            ShiftSelection.date < end_date
+        ).all()
+
+        # Delete the shifts
+        for shift in shifts:
+            db.session.delete(shift)
+
+        db.session.commit()
+        return jsonify({'message': 'Schedule reset successfully'})
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error resetting schedule: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/admin/users', methods=['GET'])
+def get_users():
+    try:
+        users = Employee.query.all()
+        current_month = datetime.now().month + 1  # Next month
+        current_year = datetime.now().year
+        if current_month > 12:
+            current_month = 1
+            current_year += 1
+
+        # Format date strings for query
+        start_date = f"{current_year}-{str(current_month).zfill(2)}-01"
+        if current_month == 12:
+            end_date = f"{current_year + 1}-01-01"
+        else:
+            end_date = f"{current_year}-{str(current_month + 1).zfill(2)}-01"
+
+        user_list = []
+        for user in users:
+            # Get shift count for next month
+            shifts = ShiftSelection.query.filter(
+                ShiftSelection.employee_id == user.employee_id,
+                ShiftSelection.date >= start_date,
+                ShiftSelection.date < end_date
+            ).count()
+
+            user_list.append({
+                'employeeId': user.employee_id,
+                'name': user.name,
+                'role': user.role,
+                'isPriority': user.is_priority,
+                'hasSchedule': shifts == 19  # true if user has full schedule
+            })
+
+        return jsonify(user_list)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/users/<employee_id>', methods=['PUT'])
+def update_user(employee_id):
+    try:
+        data = request.json
+        user = Employee.query.filter_by(employee_id=employee_id).first()
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        if 'isPriority' in data:
+            user.is_priority = data['isPriority']
+
+        db.session.commit()
+        return jsonify({'message': 'User updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/users/<employee_id>/reset', methods=['POST'])
+def reset_user_schedule(employee_id):
+    try:
+        # Get month and year from request
+        data = request.json
+        month = data.get('month', datetime.now().month + 1)  # Default to next month
+        year = data.get('year', datetime.now().year)
+        
+        if month > 12:
+            month = 1
+            year += 1
+
+        # Calculate date range
+        start_date = f"{year}-{str(month).zfill(2)}-01"
+        if month == 12:
+            end_date = f"{year + 1}-01-01"
+        else:
+            end_date = f"{year}-{str(month + 1).zfill(2)}-01"
+
+        # Delete all shifts for the user in the specified month
+        shifts = ShiftSelection.query.filter(
+            ShiftSelection.employee_id == employee_id,
+            ShiftSelection.date >= start_date,
+            ShiftSelection.date < end_date
+        ).all()
+
+        for shift in shifts:
+            db.session.delete(shift)
+
+        db.session.commit()
+        return jsonify({'message': 'Schedule reset successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+@app.route('/api/vacation/request', methods=['POST'])
+def request_vacation():
+    try:
+        data = request.json
+        employee_id = data.get('employeeId')
+        dates = data.get('dates', [])  # List of dates
+
+        # Convert dates from strings to Date objects and create requests
+        for date_str in dates:
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            vacation = VacationRequest(
+                employee_id=employee_id,
+                date=date,
+                status='approved'  # Auto-approve for now
+            )
+            db.session.add(vacation)
+
+        db.session.commit()
+        return jsonify({'message': 'Vacation requested successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/vacation/<employee_id>', methods=['GET'])
+def get_vacation_dates(employee_id):
+    try:
+        month = request.args.get('month')
+        year = request.args.get('year')
+        
+        if not month or not year:
+            return jsonify({'error': 'Month and year are required'}), 400
+
+        start_date = f"{year}-{month.zfill(2)}-01"
+        if int(month) == 12:
+            end_date = f"{int(year) + 1}-01-01"
+        else:
+            end_date = f"{year}-{str(int(month) + 1).zfill(2)}-01"
+
+        vacations = VacationRequest.query.filter(
+            VacationRequest.employee_id == employee_id,
+            VacationRequest.date >= start_date,
+            VacationRequest.date < end_date,
+            VacationRequest.status == 'approved'
+        ).all()
+
+        return jsonify([{
+            'date': vacation.date.isoformat(),
+            'status': vacation.status
+        } for vacation in vacations])
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 def init_db():

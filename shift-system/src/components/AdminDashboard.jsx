@@ -1,7 +1,54 @@
-import { useState, useEffect } from 'react';
+import UserManagement from './UserManagement';
+import { Calendar, Users } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { getShiftCapacities, setShiftCapacity, exportSchedule, syncUsers } from '../services/api';
-
 const AdminDashboard = () => {
+    const [activeTab, setActiveTab] = useState('schedule');
+
+    return (
+        <div className="max-w-7xl mx-auto">
+            {/* Tab Navigation */}
+            <div className="mb-6 bg-white rounded-lg shadow-sm border">
+                <div className="flex">
+                    <button
+                        onClick={() => setActiveTab('schedule')}
+                        className={`flex items-center px-6 py-3 focus:outline-none ${
+                            activeTab === 'schedule'
+                                ? 'text-blue-600 border-b-2 border-blue-600'
+                                : 'text-gray-600 hover:text-gray-800'
+                        }`}
+                    >
+                        <Calendar className="h-5 w-5 mr-2" />
+                        Schedule Management
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('users')}
+                        className={`flex items-center px-6 py-3 focus:outline-none ${
+                            activeTab === 'users'
+                                ? 'text-blue-600 border-b-2 border-blue-600'
+                                : 'text-gray-600 hover:text-gray-800'
+                        }`}
+                    >
+                        <Users className="h-5 w-5 mr-2" />
+                        User Management
+                    </button>
+                </div>
+            </div>
+
+            {/* Tab Content */}
+            <div className="transition-all duration-300">
+                {activeTab === 'schedule' ? (
+                    <ScheduleManagement /> // This is your existing dashboard content
+                ) : (
+                    <UserManagement />
+                )}
+            </div>
+        </div>
+    );
+};
+
+// Separate your existing dashboard content into a new component
+const ScheduleManagement = () => {
   const [capacities, setCapacities] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
