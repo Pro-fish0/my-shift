@@ -151,8 +151,9 @@ export const syncUsers = async () => {
 
 export const resetSchedule = async (employeeId, month, year) => {
     try {
-        const response = await fetch(
-            `${API_URL}/schedule/reset/${employeeId}?month=${month}&year=${year}`,
+        // Use query parameters instead of request body
+        const shiftResponse = await fetch(
+            `${API_URL}/shifts/reset/${employeeId}?month=${month}&year=${year}`,
             {
                 method: 'DELETE',
                 headers: {
@@ -161,17 +162,32 @@ export const resetSchedule = async (employeeId, month, year) => {
             }
         );
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to reset schedule and vacation days');
+        if (!shiftResponse.ok) {
+            throw new Error('Failed to reset shifts');
         }
 
-        return response.json();
+        // Use query parameters for vacation reset as well
+        const vacationResponse = await fetch(
+            `${API_URL}/vacation/reset/${employeeId}?month=${month}&year=${year}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }
+        );
+
+        if (!vacationResponse.ok) {
+            throw new Error('Failed to reset vacations');
+        }
+
+        return { message: 'Successfully reset schedule and vacations' };
     } catch (error) {
-        console.error('Error resetting schedule and vacation:', error);
+        console.error('Error in resetSchedule:', error);
         throw error;
     }
 };
+
 export const getUsers = async () => {
     try {
         const response = await fetch(`${API_URL}/admin/users`, {

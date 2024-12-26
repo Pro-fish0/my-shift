@@ -51,12 +51,12 @@ const VacationSelector = ({ employeeId, onClose, onVacationSubmitted }) => {
     };
 
     const handleSubmit = async () => {
-        if (!selectedDates.length) {
-            alert('Please select at least one day for vacation');
+        if (selectedDates.length < 10) {
+            alert('You must select at least 10 days for vacation');
             return;
         }
 
-        if (!confirm('This will prevent you from selecting shifts for these days. Continue?')) {
+        if (!confirm(`You have selected ${selectedDates.length} vacation days. This will prevent you from selecting shifts for these days. Continue?`)) {
             return;
         }
 
@@ -64,7 +64,7 @@ const VacationSelector = ({ employeeId, onClose, onVacationSubmitted }) => {
             await requestVacation(employeeId, selectedDates);
             alert('Vacation days submitted successfully!');
             if (onVacationSubmitted) {
-                onVacationSubmitted();
+                await onVacationSubmitted(selectedDates);  // Pass selectedDates to parent
             }
             onClose();
         } catch (err) {

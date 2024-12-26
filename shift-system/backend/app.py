@@ -534,41 +534,75 @@ def sync_users():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/shifts/reset/<employee_id>', methods=['DELETE'])
-def reset_schedule(employee_id):
+def reset_shifts(employee_id):
     try:
-        # Get the month/year from query parameters
-        month = request.args.get('month')
-        year = request.args.get('year')
+        # Get parameters from query string instead of request body
+        month = int(request.args.get('month'))
+        year = int(request.args.get('year'))
         
         if not month or not year:
             return jsonify({'error': 'Month and year are required'}), 400
-
-        # Calculate the date range for the month
-        start_date = f"{year}-{month.zfill(2)}-01"
-        if int(month) == 12:
-            end_date = f"{int(year) + 1}-01-01"
+        
+        # Calculate date range
+        start_date = datetime(year, month, 1).date()
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1).date()
         else:
-            end_date = f"{year}-{str(int(month) + 1).zfill(2)}-01"
+            end_date = datetime(year, month + 1, 1).date()
 
-        # Find all shifts for this employee in the given month
-        shifts = ShiftSelection.query.filter(
+        # Start transaction
+        db.session.begin_nested()
+
+        # Delete shifts
+        ShiftSelection.query.filter(
             ShiftSelection.employee_id == employee_id,
             ShiftSelection.date >= start_date,
             ShiftSelection.date < end_date
-        ).all()
-
-        # Delete the shifts
-        for shift in shifts:
-            db.session.delete(shift)
+        ).delete(synchronize_session=False)
 
         db.session.commit()
-        return jsonify({'message': 'Schedule reset successfully'})
+        return jsonify({'message': 'Shifts reset successfully'})
 
     except Exception as e:
         db.session.rollback()
-        print(f"Error resetting schedule: {str(e)}")
+        print(f"Error resetting shifts: {str(e)}")
         return jsonify({'error': str(e)}), 500
-    
+
+@app.route('/api/vacation/reset/<employee_id>', methods=['DELETE'])
+def reset_vacation(employee_id):
+    try:
+        # Get parameters from query string instead of request body
+        month = int(request.args.get('month'))
+        year = int(request.args.get('year'))
+        
+        if not month or not year:
+            return jsonify({'error': 'Month and year are required'}), 400
+        
+        # Calculate date range
+        start_date = datetime(year, month, 1).date()
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1).date()
+        else:
+            end_date = datetime(year, month + 1, 1).date()
+
+        # Start transaction
+        db.session.begin_nested()
+
+        # Delete vacation requests
+        VacationRequest.query.filter(
+            VacationRequest.employee_id == employee_id,
+            VacationRequest.date >= start_date,
+            VacationRequest.date < end_date
+        ).delete(synchronize_session=False)
+
+        db.session.commit()
+        return jsonify({'message': 'Vacation days reset successfully'})
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error resetting vacation: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/admin/users', methods=['GET'])
 def get_users():
     try:

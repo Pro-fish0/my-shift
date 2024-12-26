@@ -12,12 +12,20 @@ const ShiftSelector = ({ employeeId }) => {
   const [error, setError] = useState(null);
   const [hasSchedule, setHasSchedule] = useState(false);
   const [showVacationModal, setShowVacationModal] = useState(false);
+  const [vacationDays, setVacationDays] = useState([]);
+  const [showShiftSelection, setShowShiftSelection] = useState(true);
 
   // Constants
+  const shiftRequirements = {
+    'Morning': 6,
+    'Evening': 7,
+    'Night': 6
+  };
+
   const shifts = [
-    { name: 'Morning', color: 'bg-blue-100' },
-    { name: 'Evening', color: 'bg-orange-100' },
-    { name: 'Night', color: 'bg-purple-100' }
+    { name: 'Morning', color: 'bg-blue-100', required: 6 },
+    { name: 'Evening', color: 'bg-orange-100', required: 7 },
+    { name: 'Night', color: 'bg-purple-100', required: 6 }
   ];
 
   // Date calculations
@@ -106,10 +114,7 @@ const ShiftSelector = ({ employeeId }) => {
   };
 
   const handleVacationSubmitted = async (selectedDates) => {
-    // Refresh the capacities and employee shifts after vacation is submitted
-  fetchCapacities();
-  fetchEmployeeShifts();
-    if (selectedDates.length < 10) {
+    if (!selectedDates || selectedDates.length < 10) {
         alert('You must select at least 10 days for vacation');
         return false;
     }
@@ -139,7 +144,7 @@ const ShiftSelector = ({ employeeId }) => {
         alert('An error occurred while processing your vacation request');
         return false;
     }
-  };
+};
 
   //Selected Shifts
   const nextMonthData = getNextMonth();
@@ -170,8 +175,15 @@ const ShiftSelector = ({ employeeId }) => {
   
     if (selectedShifts.some(s => s.day === day)) return;
   
-    if (getShiftTypeCount(shiftType) >= 7) {
-      alert(`Cannot select more than 7 ${shiftType} shifts`);
+    const currentTypeCount = getShiftTypeCount(shiftType);
+    const maxShiftsAllowed = {
+      'Morning': 6,
+      'Evening': 7,
+      'Night': 6
+    };
+  
+    if (currentTypeCount >= maxShiftsAllowed[shiftType]) {
+      alert(`Cannot select more than ${maxShiftsAllowed[shiftType]} ${shiftType} shifts`);
       return;
     }
   
@@ -190,62 +202,86 @@ const ShiftSelector = ({ employeeId }) => {
   };
   
   const handleSubmit = async () => {
-    if (selectedShifts.length !== 19) {
-      alert('Please select exactly 19 shifts');
-      return;
-    }
-  
-    try {
-      const formattedShifts = selectedShifts.map(shift => ({
-        date: `${year}-${String(month).padStart(2, '0')}-${String(shift.day).padStart(2, '0')}`,
-        shift_type: shift.shift_type
-      }));
-  
-      // First, update all capacities
-      const capacityUpdates = formattedShifts.map(shift => 
-        updateShiftCapacity(shift.date, shift.shift_type, -1)
-      );
-      
-      await Promise.all(capacityUpdates);
-  
-      // Then submit the selections
-      await submitShiftSelections(employeeId, formattedShifts);
-      
-      alert('Shifts submitted successfully!');
-      setSelectedShifts([]);
-      await fetchCapacities();
-      await fetchEmployeeShifts();
-    } catch (err) {
-      alert(err.message || 'Failed to submit shifts. Please try again.');
-    }
-  };
+    const morningCount = getShiftTypeCount('Morning');
+    const eveningCount = getShiftTypeCount('Evening');
+    const nightCount = getShiftTypeCount('Night');
 
+    if (selectedShifts.length !== 19) {
+        alert('Please select exactly 19 shifts');
+        return;
+    }
+
+    if (morningCount !== 6 || eveningCount !== 7 || nightCount !== 6) {
+        alert(`You must select exactly:
+            \n- 6 Morning shifts (currently ${morningCount})
+            \n- 7 Evening shifts (currently ${eveningCount})
+            \n- 6 Night shifts (currently ${nightCount})`);
+        return;
+    }
+
+    try {
+        const formattedShifts = selectedShifts.map(shift => ({
+            date: `${year}-${String(month).padStart(2, '0')}-${String(shift.day).padStart(2, '0')}`,
+            shift_type: shift.shift_type
+        }));
+
+        // First, update all capacities
+        const capacityUpdates = formattedShifts.map(shift => 
+          updateShiftCapacity(shift.date, shift.shift_type, -1)
+        );
+        
+        await Promise.all(capacityUpdates);
+    
+        // Then submit the selections
+        await submitShiftSelections(employeeId, formattedShifts);
+        
+        alert('Shifts submitted successfully!');
+        setSelectedShifts([]);
+        await fetchCapacities();
+        await fetchEmployeeShifts();
+    } catch (err) {
+        alert(err.message || 'Failed to submit shifts. Please try again.');
+    }
+};
 
   const handleResetSchedule = async () => {
     if (!confirm('Are you sure you want to reset your schedule and vacation days? This action cannot be undone.')) {
-      return;
+        return;
     }
 
     try {
-      setIsLoading(true);
-      const nextMonth = getNextMonth();
-      await resetSchedule(employeeId, nextMonth.month, nextMonth.year);
-      
-      setSelectedShifts([]);
-      setHasSchedule(false);
-      setVacationDays([]); // Reset vacation days state
-      setShowVacationModal(false); // Close vacation modal if open
-      await fetchCapacities();
-      await fetchEmployeeShifts();
-      
-      alert('Schedule and vacation days reset successfully');
+        setIsLoading(true);
+        const nextMonth = getNextMonth();
+        
+        // Perform the reset
+        await resetSchedule(employeeId, nextMonth.month, nextMonth.year);
+        
+        // Reset all local states
+        setSelectedShifts([]);
+        setHasSchedule(false);
+        setVacationDays([]);
+        setShowVacationModal(false);
+        setShowShiftSelection(true);
+        setEmployeeShifts([]);
+        
+        // Wait a short moment to ensure backend processing is complete
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Refresh the data
+        await Promise.all([
+            fetchCapacities(),
+            fetchEmployeeShifts()
+        ]);
+        
+        alert('Schedule and vacation days have been reset successfully');
     } catch (error) {
-      console.error('Reset error:', error);
-      alert('Failed to reset schedule and vacation days: ' + error.message);
+        console.error('Reset error:', error);
+        alert('Failed to reset schedule and vacation days: ' + error.message);
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
+};
+
 
   if (isLoading) {
     return <div className="text-center p-4">Loading...</div>;
@@ -338,10 +374,10 @@ const ShiftSelector = ({ employeeId }) => {
                       shift.name === 'Evening' ? 'text-orange-700' :
                       'text-purple-700'
                     }`}>
-                      {getShiftTypeCount(shift.name)}/7
+                      {getShiftTypeCount(shift.name)}/{shift.required}
                     </div>
                   </div>
-                  {getShiftTypeCount(shift.name) === 7 ? (
+                  {getShiftTypeCount(shift.name) === shift.required ? (
                     <CheckCircle className={`h-8 w-8 ${
                       shift.name === 'Morning' ? 'text-blue-500' :
                       shift.name === 'Evening' ? 'text-orange-500' :
@@ -360,7 +396,7 @@ const ShiftSelector = ({ employeeId }) => {
                   shift.name === 'Evening' ? 'text-orange-600' :
                   'text-purple-600'
                 }`}>
-                  {7 - getShiftTypeCount(shift.name)} shifts remaining
+                  {shift.required - getShiftTypeCount(shift.name)} shifts remaining
                 </div>
               </div>
             ))}
@@ -471,19 +507,19 @@ const ShiftSelector = ({ employeeId }) => {
           </div>
         </div>
 
-        {/* Reset Schedule Button */}
-        {hasSchedule && (
+      {/* Reset Schedule Button */}
+      {(hasSchedule || employeeShifts.some(shift => shift.type === 'vacation')) && (
           <div className="flex justify-end mt-6">
-            <button
-              onClick={handleResetSchedule}
-              className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 
-                       transition-colors font-medium flex items-center gap-2"
-            >
-              <Trash2 className="h-5 w-5" />
-              Reset Schedule
-            </button>
+              <button
+                  onClick={handleResetSchedule}
+                  className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 
+                          transition-colors font-medium flex items-center gap-2"
+              >
+                  <Trash2 className="h-5 w-5" />
+                  Reset Schedule
+              </button>
           </div>
-        )}
+      )}
       </div>
 
       {/* Action Buttons */}
